@@ -18,7 +18,7 @@ async def get_patients(patient_service: PatientService = Depends(get_patient_ser
     This method is used to retrieve all patients from the DB with given page and page size.
 
     Returns:
-        patients (Sequence[Patient][start:end])
+        patients (List[PatientRead][start:end])
     """
 
     patients = await patient_service.get_patients()
@@ -30,12 +30,12 @@ async def get_patients(patient_service: PatientService = Depends(get_patient_ser
 
 
 @router.get("/patients/{patient_id}", response_model=PatientRead)
-async def get_patient(patient_id: int, patient_service: PatientService = Depends(get_patient_service)):
+async def get_patient_by_id(patient_id: int, patient_service: PatientService = Depends(get_patient_service)):
     """
-    This method is used to retrieve all patients from the DB.
+    This method is used to retrieve a certain patient from the DB.
 
     Returns:
-        patients (Sequence[Patient])
+        patient (PatientRead)
     """
 
     patient = await patient_service.get_patient_by_id(patient_id)
