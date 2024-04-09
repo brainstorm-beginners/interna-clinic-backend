@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from app.config.db_config import DATABASE_URL
 from app.models.models import models_metadata
 
-
 engine = create_async_engine(DATABASE_URL)
 
 models_metadata.bind = engine
