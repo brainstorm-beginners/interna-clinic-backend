@@ -60,7 +60,7 @@ class PatientService:
 
         return await self.patient_repository.create_patient(patient_with_hashed_password)
 
-    async def update_patient(self, new_data_for_patient: PatientUpdate) -> PatientRead:
+    async def update_patient(self, patient_id: int, new_data_for_patient: PatientUpdate) -> PatientRead:
         """
         This method is used to update the existing patient data with the new one ('PatientUpdate' model).
 
@@ -68,7 +68,7 @@ class PatientService:
             updated patient (dict[str, Any])
         """
 
-        patient_to_update = await self.patient_repository.get_patient_by_id(new_data_for_patient.id)
+        patient_to_update = await self.patient_repository.get_patient_by_id(patient_id)
         if patient_to_update is None:
             raise HTTPException(status_code=404, detail=f"Patient with id {new_data_for_patient.id} does not exist.")
 

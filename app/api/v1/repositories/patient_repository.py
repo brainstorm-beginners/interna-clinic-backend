@@ -53,7 +53,7 @@ class PatientRepository:
 
         return new_patient
 
-    async def update_patient(self, new_data_for_patient: PatientUpdate) -> PatientRead:
+    async def update_patient(self, patient_id: int, new_data_for_patient: PatientUpdate) -> PatientRead:
         """
         This method is used to update the existing patient data with the new one ('PatientUpdate' model).
 
@@ -64,7 +64,7 @@ class PatientRepository:
             HTTPException: If the patient with the given ID is not found.
         """
 
-        patient_to_update = await self.get_patient_by_id(new_data_for_patient.id)
+        patient_to_update = await self.get_patient_by_id(patient_id)
         patient_to_update.update_field(new_data_for_patient.model_dump())
 
         await self.session.flush()

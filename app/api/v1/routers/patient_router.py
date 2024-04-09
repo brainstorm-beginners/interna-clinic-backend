@@ -59,7 +59,7 @@ async def create_patient(new_patient_data: PatientCreateRawPassword, patient_ser
 
 
 @router.put("/patients/{patient_id}", response_model=PatientRead)
-async def update_patient(new_data_for_patient: PatientUpdate, patient_service: PatientService = Depends(get_patient_service)):
+async def update_patient(patient_id: int, new_data_for_patient: PatientUpdate, patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to update the existing patient data with the new one ('PatientUpdate' model).
 
@@ -67,7 +67,7 @@ async def update_patient(new_data_for_patient: PatientUpdate, patient_service: P
         updated patient (dict[str, Any])
     """
 
-    patient_to_update = await patient_service.update_patient(new_data_for_patient)
+    patient_to_update = await patient_service.update_patient(patient_id, new_data_for_patient)
 
     return patient_to_update
 
