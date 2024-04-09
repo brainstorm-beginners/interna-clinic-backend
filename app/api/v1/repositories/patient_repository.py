@@ -59,6 +59,9 @@ class PatientRepository:
 
         Returns:
             updated patient (dict[str, Any])
+
+        Raises:
+            HTTPException: If the patient with the given ID is not found.
         """
 
         patient_to_update = await self.get_patient_by_id(new_data_for_patient.id)
@@ -74,10 +77,13 @@ class PatientRepository:
 
     async def delete_patient(self, patient_id: int) -> int:
         """
-        This method is used to delete the existing patient with given id.
+        This method is used to delete the existing patient with given ID.
 
         Returns:
             deleted patient ID (int)
+
+        Raises:
+            HTTPException: If the patient with the given ID is not found.
         """
 
         patient_to_delete = await self.get_patient_by_id(patient_id)
