@@ -1,5 +1,6 @@
 from typing import Any, Sequence
 
+from fastapi import HTTPException
 from passlib.context import CryptContext
 
 from app.api.v1.repositories.patient_repository import PatientRepository
@@ -34,7 +35,11 @@ class PatientService:
             patients (Patient | None)
         """
 
-        return await self.patient_repository.get_patient_by_id(patient_id)
+        patient = await self.patient_repository.get_patient_by_id(patient_id)
+        if not patient:
+            raise HTTPException(status_code=404, detail=f"Patient with id {patient_id} does not exist.")
+
+        return patient
 
     async def create_patient(self, raw_patient_data: PatientCreateRawPassword) -> dict[str, Any]:
         """
@@ -63,6 +68,10 @@ class PatientService:
             updated patient (dict[str, Any])
         """
 
+        patient_to_update = await self.patient_repository.get_patient_by_id(new_data_for_patient.id)
+        if patient_to_update is None:
+            raise HTTPException(status_code=404, detail=f"Patient with id {new_data_for_patient.id} does not exist.")
+
         return await self.patient_repository.update_patient(new_data_for_patient)
 
     async def delete_patient(self, patient_id: int) -> int:
@@ -72,5 +81,9 @@ class PatientService:
         Returns:
             deleted patient ID (int)
         """
+
+        patient_to_delete = await self.patient_repository.get_patient_by_id(patient_id)
+        if patient_to_delete is None:
+            raise HTTPException(status_code=404, detail=f"Patient with id {patient_id} does not exist.")
 
         return await self.patient_repository.delete_patient(patient_id)

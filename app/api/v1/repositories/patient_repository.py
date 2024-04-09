@@ -40,7 +40,7 @@ class PatientRepository:
 
     async def create_patient(self, new_patient_data: PatientCreateHashedPassword) -> dict[str, Any]:
         """
-        This method is used to create a patient with the given data ('PatientCreate' model).
+        This method is used to create a patient with the given data ('PatientCreateHashedPassword' model).
 
         Returns:
             created patient (dict[str, Any])
@@ -65,9 +65,6 @@ class PatientRepository:
         """
 
         patient_to_update = await self.get_patient_by_id(new_data_for_patient.id)
-        if patient_to_update is None:
-            raise HTTPException(status_code=404, detail=f"Patient with id {new_data_for_patient.id} does not exist.")
-
         patient_to_update.update_field(new_data_for_patient.model_dump())
 
         await self.session.flush()
@@ -87,8 +84,6 @@ class PatientRepository:
         """
 
         patient_to_delete = await self.get_patient_by_id(patient_id)
-        if patient_to_delete is None:
-            raise HTTPException(status_code=404, detail=f"Patient with id {patient_id} does not exist.")
 
         await self.session.delete(patient_to_delete)
         await self.session.commit()
