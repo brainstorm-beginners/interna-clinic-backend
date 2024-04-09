@@ -55,13 +55,12 @@ class AdminRepository:
 
         return new_admin
 
-    async def update_admin(self, admin_id: int, admin: AdminUpdate) -> dict[str, Any]:
+    async def update_admin(self, new_data_for_admin: AdminUpdate) -> AdminRead:
         """
-        Updates an existing admin in the database with the provided information.
+        This method is used to update the existing admin data with the new one ('AdminUpdate' model).
 
         Args:
-            admin_id (int): The ID of the admin to be updated.
-            admin (AdminUpdate): The updated admin data.
+            new_data_for_admin (AdminUpdate): The updated admin data.
 
         Returns:
             Admin: The updated admin object.
@@ -69,22 +68,31 @@ class AdminRepository:
         Raises:
             HTTPException: If the admin with the given ID is not found.
         """
-        admin = await self.get_admins(admin_id)
-        if admin is None:
+
+        admin_to_update = await self.get_admin_by_id(new_data_for_admin.id)
+        if admin_to_update is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-        admin.update_fields(**admin.model_dump())
+        admin_to_update.update_fields(**admin_to_update.model_dump())
 
         await self.session.flush()
-        await self.session.commit(admin)
-        return admin
+        await self.session.commit()
 
-    async def delete_admin(self, admin_id: int):
-        admin = await self.get_admins(admin_id)
+        return admin_to_update
 
-        if admin is None:
+    async def delete_admin(self, admin_id: int) -> int:
+        """
+        This method is used to delete the existing admin with given ID.
+
+        Returns:
+            deleted admin ID (int)
+        """
+
+        admin_to_delete = await self.get_admin_by_id(admin_id)
+        if admin_to_delete is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-        await self.session.delete(admin)
+        await self.session.delete(admin_to_delete)
         await self.session.commit()
-        return admin
+
+        return admin_id
