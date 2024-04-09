@@ -50,6 +50,12 @@ class PatientService:
             created patient (dict[str, Any])
         """
 
+        # TODO: Add doctor's repository in the __init__ to check doctor's existing
+        # Проверка существования доктора
+        # doctor = await self.doctor_repository.get_doctor_by_id(raw_patient_data.doctor_id)
+        # if doctor is None:
+        #     raise HTTPException(status_code=404, detail=f"Doctor with id {raw_patient_data.doctor_id} does not exist.")
+
         hashed_password = hash_password(raw_patient_data.password)
 
         patient_data = raw_patient_data.model_dump()
@@ -70,9 +76,9 @@ class PatientService:
 
         patient_to_update = await self.patient_repository.get_patient_by_id(patient_id)
         if patient_to_update is None:
-            raise HTTPException(status_code=404, detail=f"Patient with id {new_data_for_patient.id} does not exist.")
+            raise HTTPException(status_code=404, detail=f"Patient with id {patient_id} does not exist.")
 
-        return await self.patient_repository.update_patient(new_data_for_patient)
+        return await self.patient_repository.update_patient(patient_id, new_data_for_patient)
 
     async def delete_patient(self, patient_id: int) -> int:
         """
