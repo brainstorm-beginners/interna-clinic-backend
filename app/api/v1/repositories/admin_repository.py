@@ -39,6 +39,7 @@ class AdminRepository:
 
         return admin
 
+    # TODO: Move this endpoint to the new 'auth' module as a part of login-registering logic.
     async def register_admin(self, new_admin_data: AdminCreate) -> dict[str, Any]:
         """
         This method is used to create an admin with the given data ('AdminCreate' model).

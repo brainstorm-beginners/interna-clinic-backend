@@ -43,6 +43,7 @@ async def get_patient(patient_id: int, patient_service: PatientService = Depends
     return patient
 
 
+# TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.
 @router.post("/patients/register", response_model=PatientCreateRawPassword)
 async def create_patient(new_patient_data: PatientCreateRawPassword, patient_service: PatientService = Depends(get_patient_service)):
     """
