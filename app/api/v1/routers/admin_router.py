@@ -1,12 +1,12 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.repositories.admin_repository import AdminRepository
 from app.api.v1.services.admin_service import AdminService
 from app.dependencies import get_async_session, get_admin_service
-from app.schemas.schemas import AdminRead, AdminUpdate, AdminCreateRawPassword
+from app.schemas.schemas import AdminRead, AdminCreateRawPassword, AdminUpdateRawPassword
 
 router = APIRouter(
     tags=["Admins"],
@@ -14,8 +14,8 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[AdminRead])
-async def get_admins(session: AsyncSession = Depends(get_async_session), page: int = 1, page_size: int = 10):
+@router.get("/admins", response_model=List[AdminRead])
+async def get_admins(admin_service: AdminService = Depends(get_admin_service), page: int = 1, page_size: int = 10):
     """
     This method is used to retrieve all admins from the DB with given page and page size.
 
@@ -23,9 +23,7 @@ async def get_admins(session: AsyncSession = Depends(get_async_session), page: i
         admins (List[AdminRead][start:end])
     """
 
-    admin_repository = AdminRepository(session)
-
-    admins = await admin_repository.get_admins()
+    admins = await admin_service.get_admins()
 
     start = (page - 1) * page_size
     end = start + page_size
@@ -33,8 +31,8 @@ async def get_admins(session: AsyncSession = Depends(get_async_session), page: i
     return admins[start:end]
 
 
-@router.get("/{admin_id}", response_model=AdminRead)
-async def get_admin_by_id(admin_id: int, session: AsyncSession = Depends(get_async_session)):
+@router.get("/admins/{admin_id}", response_model=AdminRead)
+async def get_admin_by_id(admin_id: int, admin_service: AdminService = Depends(get_admin_service)):
     """
     This method is used to retrieve a certain admin from the DB.
 
@@ -42,16 +40,13 @@ async def get_admin_by_id(admin_id: int, session: AsyncSession = Depends(get_asy
         admin (AdminRead)
     """
 
-    admin_repository = AdminRepository(session)
+    admin = await admin_service.get_admin_by_id(admin_id)
 
-    admin = await admin_repository.get_admin_by_id(admin_id)
-    if not admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
     return admin
 
 
 # TODO: Move this endpoint to the new 'auth' module as a part of login-registering logic.
-@router.post("/admins/register", response_model=AdminCreateRawPassword)
+@router.post("/admins/register", response_model=AdminRead)
 async def register_admin(new_admin_data: AdminCreateRawPassword, admin_service: AdminService = Depends(get_admin_service)):
     """
     This method is used to create an admin with the given data ('AdminCreate' model).
@@ -64,8 +59,8 @@ async def register_admin(new_admin_data: AdminCreateRawPassword, admin_service: 
     return new_admin
 
 
-@router.put("/{admin_id}", response_model=AdminRead)
-async def update_admin(admin_id: int, admin_data: AdminUpdate, session: AsyncSession = Depends(get_async_session)):
+@router.put("/admins/{admin_id}", response_model=AdminRead)
+async def update_admin(admin_id: int, admin_data: AdminUpdateRawPassword, session: AsyncSession = Depends(get_async_session)):
     """
     This method is used to update the existing admin data with the new one ('AdminUpdate' model).
 

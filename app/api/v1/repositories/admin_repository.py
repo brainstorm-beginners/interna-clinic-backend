@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from app.models.models import Admin
-from app.schemas.schemas import AdminRead, AdminUpdate, AdminCreateHashedPassword
+from app.schemas.schemas import AdminRead, AdminCreateHashedPassword, AdminUpdateHashedPassword
 
 
 class AdminRepository:
@@ -41,7 +41,7 @@ class AdminRepository:
 
     async def register_admin(self, new_admin_data: AdminCreateHashedPassword) -> dict[str, Any]:
         """
-        This method is used to create an admin with the given data ('AdminCreate' model).
+        This method is used to create an admin with the given data ('AdminCreateHashedPassword' model).
 
         Returns:
             created admin (dict[str, Any])
@@ -54,7 +54,7 @@ class AdminRepository:
 
         return new_admin
 
-    async def update_admin(self, new_data_for_admin: AdminUpdate) -> AdminRead:
+    async def update_admin(self, new_data_for_admin: AdminUpdateHashedPassword) -> AdminRead:
         """
         This method is used to update the existing admin data with the new one ('AdminUpdate' model).
 
@@ -69,10 +69,9 @@ class AdminRepository:
         """
 
         admin_to_update = await self.get_admin_by_id(new_data_for_admin.id)
-        if admin_to_update is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-        admin_to_update.update_fields(**admin_to_update.model_dump())
+        for key, value in new_data_for_admin.model_dump().items():
+            setattr(admin_to_update, key, value)
 
         await self.session.flush()
         await self.session.commit()

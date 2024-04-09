@@ -3,8 +3,8 @@ from typing import Sequence, Any
 from fastapi import HTTPException
 from passlib.context import CryptContext
 
-from app.models.models import Admin
-from app.schemas.schemas import AdminRead, AdminUpdate, AdminCreateRawPassword, AdminCreateHashedPassword
+from app.schemas.schemas import AdminRead, AdminCreateRawPassword, AdminCreateHashedPassword, \
+    AdminUpdateRawPassword, AdminUpdateHashedPassword
 from ..repositories.admin_repository import AdminRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -22,7 +22,7 @@ class AdminService:
         """Retrieves all admins from the database."""
         return await self.admin_repository.get_admins()
 
-    async def get_admin_by_id(self, admin_id: int) -> Admin:
+    async def get_admin_by_id(self, admin_id: int) -> AdminRead:
         """Retrieves a specific admin by ID."""
         admin = await self.admin_repository.get_admin_by_id(admin_id)
         if not admin:
@@ -42,9 +42,27 @@ class AdminService:
 
         return await self.admin_repository.register_admin(admin_with_hashed_password)
 
-    async def update_admin(self, admin_id: int, admin_data: AdminUpdate) -> Admin:
-        """Updates an existing admin in the database."""
-        return await self.admin_repository.update_admin(admin_id, admin_data)
+    async def update_admin(self, new_data_for_admin: AdminUpdateRawPassword, admin_id: int) -> AdminRead:
+        """
+        This method is used to update the existing admin data with the new one ('AdminUpdateRawPassword' model).
+
+        Returns:
+            updated admin (dict[str, Any])
+        """
+
+        admin_to_update = await self.admin_repository.get_admin_by_id(admin_id)
+        if admin_to_update is None:
+            raise HTTPException(status_code=404, detail=f"Patient with id {admin_id} does not exist.")
+
+        hashed_password = hash_password(new_data_for_admin.password)
+
+        admin_data = new_data_for_admin.model_dump()
+        admin_data["hashed_password"] = hashed_password
+        del admin_data["password"]
+
+        admin_with_hashed_password = AdminUpdateHashedPassword(**admin_data)
+
+        return await self.admin_repository.update_admin(admin_with_hashed_password, admin_id)
 
     async def delete_admin(self, admin_id: int) -> int:
         """

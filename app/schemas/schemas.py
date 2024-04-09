@@ -46,12 +46,24 @@ class PatientCreateHashedPassword(BaseModel):
     doctor_id: int
 
 
-class PatientUpdate(BaseModel):
+class PatientUpdateRawPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
     IIN: str
     password: str
+    gender: GenderEnum
+    age: int
+
+    doctor_id: int
+
+
+class PatientUpdateHashedPassword(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: str
+    IIN: str
+    hashed_password: str
     gender: GenderEnum
     age: int
 
@@ -77,7 +89,7 @@ class DoctorRead(BaseModel):
     qualification: DoctorQualificationEnum
 
 
-class DoctorCreate(BaseModel):
+class DoctorCreateRawPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
@@ -88,7 +100,18 @@ class DoctorCreate(BaseModel):
     qualification: DoctorQualificationEnum
 
 
-class DoctorUpdate(BaseModel):
+class DoctorCreateHashedPassword(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: str
+    IIN: str
+    hashed_password: str
+    gender: GenderEnum
+    age: int
+    qualification: DoctorQualificationEnum
+
+
+class DoctorUpdateRawPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
@@ -97,7 +120,15 @@ class DoctorUpdate(BaseModel):
     gender: GenderEnum
     age: int
 
-    doctor_id: int
+
+class DoctorUpdateHashedPassword(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: str
+    IIN: str
+    hashed_password: str
+    gender: GenderEnum
+    age: int
 
 
 class AdminRead(BaseModel):
@@ -123,9 +154,17 @@ class AdminCreateHashedPassword(BaseModel):
     hashed_password: str
 
 
-class AdminUpdate(BaseModel):
+class AdminUpdateRawPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
     username: str
     password: str
+
+
+class AdminUpdateHashedPassword(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: str
+    username: str
+    hashed_password: str

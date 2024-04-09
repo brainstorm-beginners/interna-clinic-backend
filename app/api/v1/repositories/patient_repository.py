@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.models import Patient
-from app.schemas.schemas import PatientUpdate, PatientRead, PatientCreateHashedPassword
+from app.schemas.schemas import PatientRead, PatientCreateHashedPassword, PatientUpdateHashedPassword
 
 
 class PatientRepository:
@@ -53,9 +53,9 @@ class PatientRepository:
 
         return new_patient
 
-    async def update_patient(self, patient_id: int, new_data_for_patient: PatientUpdate) -> PatientRead:
+    async def update_patient(self, patient_id: int, new_data_for_patient: PatientUpdateHashedPassword) -> PatientRead:
         """
-        This method is used to update the existing patient data with the new one ('PatientUpdate' model).
+        This method is used to update the existing patient data with the new one ('PatientUpdateHashedPassword' model).
 
         Returns:
             updated patient (dict[str, Any])
@@ -65,7 +65,9 @@ class PatientRepository:
         """
 
         patient_to_update = await self.get_patient_by_id(patient_id)
-        patient_to_update.update_field(new_data_for_patient.model_dump())
+
+        for key, value in new_data_for_patient.model_dump().items():
+            setattr(patient_to_update, key, value)
 
         await self.session.flush()
         await self.session.commit()

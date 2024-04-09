@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.v1.services.patient_service import PatientService
 from app.dependencies import get_patient_service
-from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientUpdate
+from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientUpdateRawPassword
 
 router = APIRouter(
     tags=["Patient"],
@@ -44,7 +44,7 @@ async def get_patient_by_id(patient_id: int, patient_service: PatientService = D
 
 
 # TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.
-@router.post("/patients/register", response_model=PatientCreateRawPassword)
+@router.post("/patients/register", response_model=PatientRead)
 async def create_patient(new_patient_data: PatientCreateRawPassword, patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to create a patient with the given data ('PatientCreate' model).
@@ -59,9 +59,9 @@ async def create_patient(new_patient_data: PatientCreateRawPassword, patient_ser
 
 
 @router.put("/patients/{patient_id}", response_model=PatientRead)
-async def update_patient(patient_id: int, new_data_for_patient: PatientUpdate, patient_service: PatientService = Depends(get_patient_service)):
+async def update_patient(patient_id: int, new_data_for_patient: PatientUpdateRawPassword, patient_service: PatientService = Depends(get_patient_service)):
     """
-    This method is used to update the existing patient data with the new one ('PatientUpdate' model).
+    This method is used to update the existing patient data with the new one ('PatientUpdateRawPassword' model).
 
     Returns:
         updated patient (dict[str, Any])
