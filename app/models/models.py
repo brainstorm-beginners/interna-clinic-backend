@@ -34,8 +34,14 @@ class Doctor(Base):
     hashed_password = Column(String(1024), nullable=False, default=False)
     gender = Column(Enum('Male', 'Female', name='genderEnum'), nullable=False, default=False)
     age = Column(Integer, CheckConstraint('age >= 0 AND age <= 120'), nullable=False)
-    qualification = Column(Enum('Pediatrician', 'Gynecologist', 'Psychiatrist', 'Internists',
-                                'Oncologist', 'Dermatologist', name='doctorQualificationEnum'), nullable=False, default=False)
+    qualification = Column(Enum(
+        'Pediatrician',
+        'Gynecologist',
+        'Psychiatrist',
+        'Internists',
+        'Oncologist',
+        'Dermatologist',
+        name='doctorQualificationEnum'), nullable=False, default=False)
     patients = relationship("Patient", back_populates="doctor")
 
 
