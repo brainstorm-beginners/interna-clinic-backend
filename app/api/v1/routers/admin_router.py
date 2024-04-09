@@ -61,3 +61,10 @@ async def update_admin(admin_id: int, admin_data: AdminUpdate, session: AsyncSes
 
     admin = await admin_repository.update_admin(admin_id, admin_data)
     return admin
+
+@router.delete("/admins/{admin_id}", response_model=None)
+async def delete_gun(admin_id: int, session: AsyncSession = Depends(get_async_session)):
+    admin_repository = AdminRepository(session)
+
+    admin = await admin_repository.delete_admin(admin_id)
+    return None

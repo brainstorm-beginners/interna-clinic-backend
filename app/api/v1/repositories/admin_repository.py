@@ -68,7 +68,7 @@ class AdminRepository:
         Raises:
             HTTPException: If the admin with the given ID is not found.
         """
-        admin = await self.get_admin(admin_id)
+        admin = await self.get_admins(admin_id)
         if admin is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -76,4 +76,14 @@ class AdminRepository:
 
         await self.session.flush()
         await self.session.commit(admin)
+        return admin
+
+    async def delete_admin(self, admin_id: int):
+        admin = await self.get_admins(admin_id)
+
+        if admin is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+        await self.session.delete(admin)
+        await self.session.commit()
         return admin

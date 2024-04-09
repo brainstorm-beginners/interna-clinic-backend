@@ -29,3 +29,15 @@ class AdminService:
     async def update_admin(self, admin_id: int, admin_data: AdminUpdate) -> Admin:
         """Updates an existing admin in the database."""
         return await self.admin_repository.update_admin(admin_id, admin_data)
+
+    async def delete_admin(self, admin_id: int) -> Admin:
+        """
+            Deleting admin from the database.
+        Raises:
+            HTTPException: If admin not find.
+        """
+        try:
+            admin = await self.admin_repository.delete_admin(admin_id)
+            return admin
+        except HTTPException as exc:
+            raise exc
