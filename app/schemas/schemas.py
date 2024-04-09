@@ -16,13 +16,27 @@ class PatientRead(BaseModel):
     gender: GenderEnum
     age: int
 
+    doctor_id: int
 
-class PatientCreate(BaseModel):
+
+class PatientCreateRawPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
     IIN: str
     password: str
+    gender: GenderEnum
+    age: int
+
+    doctor_id: int
+
+
+class PatientCreateHashedPassword(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: str
+    IIN: str
+    hashed_password: str
     gender: GenderEnum
     age: int
 
