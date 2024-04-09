@@ -1,10 +1,9 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
-from app.config.db_config import DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
+from app.config.db_config import DATABASE_URL
 from app.models.models import models_metadata
 
 
-DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 engine = create_async_engine(DATABASE_URL)
 
 models_metadata.bind = engine
@@ -16,15 +15,7 @@ async def create_tables():
 
 
 async_session_maker = async_sessionmaker(
-    engine=engine,
+    bind=engine,
     class_=AsyncSession,
     expire_on_commit=False
 )
-
-
-async def get_async_session():
-    async with async_session_maker() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
