@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from app.models.models import Admin
-from app.schemas.schemas import AdminRead, AdminCreate, AdminUpdate
+from app.schemas.schemas import AdminRead, AdminUpdate, AdminCreateHashedPassword
 
 
 class AdminRepository:
@@ -39,8 +39,7 @@ class AdminRepository:
 
         return admin
 
-    # TODO: Move this endpoint to the new 'auth' module as a part of login-registering logic.
-    async def register_admin(self, new_admin_data: AdminCreate) -> dict[str, Any]:
+    async def register_admin(self, new_admin_data: AdminCreateHashedPassword) -> dict[str, Any]:
         """
         This method is used to create an admin with the given data ('AdminCreate' model).
 

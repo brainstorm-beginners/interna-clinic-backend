@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.repositories.admin_repository import AdminRepository
-from app.dependencies import get_async_session
-from app.schemas.schemas import AdminRead, AdminCreate, AdminUpdate
+from app.api.v1.services.admin_service import AdminService
+from app.dependencies import get_async_session, get_admin_service
+from app.schemas.schemas import AdminRead, AdminUpdate, AdminCreateRawPassword
 
 router = APIRouter(
     tags=["Admins"],
@@ -41,15 +42,15 @@ async def get_admin_by_id(admin_id: int, session: AsyncSession = Depends(get_asy
     return admin
 
 
-@router.post("/", response_model=AdminRead)
-async def register_admin(admin_data: AdminCreate, session: AsyncSession = Depends(get_async_session)):
+    # TODO: Move this endpoint to the new 'auth' module as a part of login-registering logic.
+@router.post("/admins/register", response_model=AdminCreateRawPassword)
+async def register_admin(new_admin_data: AdminCreateRawPassword, admin_service: AdminService = Depends(get_admin_service)):
     """
     Creates a new admin in the database.
     """
-    admin_repository = AdminRepository(session)
+    new_admin = await admin_service.register_admin(new_admin_data)
 
-    admin = await admin_repository.register_admin(admin_data)
-    return admin
+    return new_admin
 
 
 @router.put("/{admin_id}", response_model=AdminRead)
@@ -64,7 +65,7 @@ async def update_admin(admin_id: int, admin_data: AdminUpdate, session: AsyncSes
 
 
 @router.delete("/admins/{admin_id}", response_model=None)
-async def delete_gun(admin_id: int, session: AsyncSession = Depends(get_async_session)):
+async def delete_admin(admin_id: int, session: AsyncSession = Depends(get_async_session)):
     admin_repository = AdminRepository(session)
 
     admin = await admin_repository.delete_admin(admin_id)

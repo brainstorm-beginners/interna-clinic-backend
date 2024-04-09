@@ -47,7 +47,6 @@ class PatientCreateHashedPassword(BaseModel):
 
 
 class PatientUpdate(BaseModel):
-    id: int
     first_name: str
     last_name: str
     middle_name: str
@@ -90,7 +89,6 @@ class DoctorCreate(BaseModel):
 
 
 class DoctorUpdate(BaseModel):
-    id: int
     first_name: str
     last_name: str
     middle_name: str
@@ -109,7 +107,7 @@ class AdminRead(BaseModel):
     username: str
 
 
-class AdminCreate(BaseModel):
+class AdminCreateRawPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
@@ -117,8 +115,15 @@ class AdminCreate(BaseModel):
     password: str
 
 
+class AdminCreateHashedPassword(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: str
+    username: str
+    hashed_password: str
+
+
 class AdminUpdate(BaseModel):
-    id: int
     first_name: str
     last_name: str
     middle_name: str
