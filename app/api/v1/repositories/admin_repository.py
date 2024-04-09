@@ -6,14 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from app.models.models import Admin
-from app.schemas.schemas import AdminCreate, AdminUpdate
+from app.schemas.schemas import AdminRead, AdminCreate, AdminUpdate
 
 
 class AdminRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_admins(self) -> Sequence[Admin]:
+    async def get_admins(self) -> Sequence[AdminRead]:
         """
         This method is used to retrieve all admins from the DB.
 
@@ -26,7 +26,7 @@ class AdminRepository:
 
         return admins
 
-    async def get_admin_by_id(self, admin_id: int) -> Admin | None:
+    async def get_admin_by_id(self, admin_id: int) -> AdminRead | None:
         """
         This method is used to retrieve a certain admin from the DB by his 'id' field.
 
@@ -39,15 +39,15 @@ class AdminRepository:
 
         return admin
 
-    async def create_admin(self, new_admin_data: AdminCreate) -> dict[str, Any]:
+    async def register_admin(self, new_admin_data: AdminCreate) -> dict[str, Any]:
         """
-        This method is used to create a admin with the given data ('AdminCreate' model).
+        This method is used to create an admin with the given data ('AdminCreate' model).
 
         Returns:
             created admin (dict[str, Any])
         """
 
-        new_admin = new_admin_data.model_dump()
+        new_admin = Admin(**new_admin_data.model_dump())
         self.session.add(new_admin)
         await self.session.flush()
         await self.session.commit()
