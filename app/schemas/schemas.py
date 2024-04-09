@@ -19,24 +19,27 @@ class PatientRead(BaseModel):
     doctor_id: int
 
 
+# This Pydantic model is needed for router, because we receive raw 'password' field there.
 class PatientCreateRawPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
     IIN: str
-    password: str
+    password: str  # <-- Raw password
     gender: GenderEnum
     age: int
 
     doctor_id: int
 
 
+# This Pydantic model is needed for service and repository, because we convert raw 'password' field to the
+# hashed 'hashed_password' field in the service layer.
 class PatientCreateHashedPassword(BaseModel):
     first_name: str
     last_name: str
     middle_name: str
     IIN: str
-    hashed_password: str
+    hashed_password: str  # <-- Hashed password
     gender: GenderEnum
     age: int
 
