@@ -1,11 +1,9 @@
 from typing import List
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.repositories.admin_repository import AdminRepository
 from app.api.v1.services.admin_service import AdminService
-from app.dependencies import get_async_session, get_admin_service
+from app.dependencies import get_admin_service
 from app.schemas.schemas import AdminRead, AdminCreateRawPassword, AdminUpdateRawPassword
 
 router = APIRouter(
