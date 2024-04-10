@@ -35,6 +35,9 @@ class DoctorService:
 
         Returns:
             doctor (DoctorRead | None)
+
+        Raises:
+            HTTPException (404): if the doctor with given ID does not exist.
         """
 
         doctor = await self.doctor_repository.get_doctor_by_id(doctor_id)
@@ -46,11 +49,23 @@ class DoctorService:
     async def create_doctor(self, raw_doctor_data: DoctorCreateRawPassword) -> dict[str, Any]:
         """
         This method is used to create a doctor with the given data ('DoctorCreateRawPassword' model).
-        Moreover, this method hashes the raw password.
+        Moreover, this method:
+        1). Hashes the raw password by creating new DICT with added 'hashed_password' field and
+        deleted 'password' field. After this, it creates a new 'DoctorCreateHashedPassword' object and sends it
+        to the 'doctor_repository'.
+        2). Checking if doctor with given IIN already exists in the DB.
 
         Returns:
             created doctor data (dict[str, Any])
+
+        Raises:
+            HTTPException (409): if doctor with given IIN already exists in the DB.
         """
+
+        # Checking if doctor with provided IIN already exists in the DB.
+        already_existing_doctor_with_provided_IIN = await self.doctor_repository.get_doctor_by_IIN(raw_doctor_data.IIN)
+        if already_existing_doctor_with_provided_IIN:
+            raise HTTPException(status_code=409, detail=f"Doctor with IIN {raw_doctor_data.IIN} already exists.")
 
         hashed_password = hash_password(raw_doctor_data.password)
 
@@ -90,6 +105,11 @@ class DoctorService:
 
         Returns:
             A dictionary containing the deleted doctor ID and a message (dict)
+
+        Raises:
+            HTTPException (404): if doctor with given ID does not exist.
+            HTTPException (409): if doctor with given ID cannot be deleted because of relationship with
+            existing patients.
         """
 
         doctor_to_delete = await self.doctor_repository.get_doctor_by_id(doctor_id)
@@ -100,6 +120,6 @@ class DoctorService:
             await self.doctor_repository.delete_doctor(doctor_id)
             return {"doctor_id": doctor_id, "message": f"Doctor with id {doctor_id} has been deleted."}
         except IntegrityError:
-            raise HTTPException(status_code=400,
+            raise HTTPException(status_code=409,
                                 detail=f"Doctor with id {doctor_id} cannot be deleted because they have associated "
                                        f"patients.")

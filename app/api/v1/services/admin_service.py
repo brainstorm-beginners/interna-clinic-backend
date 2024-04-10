@@ -34,6 +34,9 @@ class AdminService:
 
         Returns:
             admin (AdminRead | None)
+
+        Raises:
+            HTTPException (404): if the admin with given ID does not exist.
         """
 
         admin = await self.admin_repository.get_admin_by_id(admin_id)
@@ -46,13 +49,23 @@ class AdminService:
     async def register_admin(self, raw_admin_data: AdminCreateRawPassword) -> dict[str, Any]:
         """
         This method is used to create an admin with the given data ('AdminCreateRawPassword' model).
-        Moreover, this method hashes the raw password by creating new DICT with added 'hashed_password' field and
+        Moreover, this method:
+        1). Hashes the raw password by creating new DICT with added 'hashed_password' field and
         deleted 'password' field. After this, it creates a new 'AdminCreateHashedPassword' object and sends it
         to the 'admin_repository'.
+        2). Checking if admin with given username already exists in the DB.
 
         Returns:
             created admin data (dict[str, Any])
+
+        Raises:
+            HTTPException (409): if admin with given username already exists in the DB.
         """
+
+        # Checking if admin with provided username already exists in the DB.
+        already_existing_admin_with_provided_username = await self.admin_repository.get_admin_by_username(raw_admin_data.username)
+        if already_existing_admin_with_provided_username:
+            raise HTTPException(status_code=409, detail=f"Admin with username {raw_admin_data.username} already exists.")
 
         hashed_password = hash_password(raw_admin_data.password)
 
@@ -86,16 +99,21 @@ class AdminService:
 
         return await self.admin_repository.update_admin(admin_with_hashed_password, admin_id)
 
-    async def delete_admin(self, admin_id: int) -> int:
+    async def delete_admin(self, admin_id: int) -> dict:
         """
         This method is used to delete the existing admin with given id.
 
+        Returns:
+            A dictionary containing the deleted admin ID and a message (dict).
+
         Raises:
-            HTTPException: If admin not find.
+            HTTPException (404): If the admin with given ID does not exist.
         """
 
         admin_to_delete = await self.admin_repository.get_admin_by_id(admin_id)
         if admin_to_delete is None:
             raise HTTPException(status_code=404, detail=f"Admin with id {admin_id} does not exist.")
 
-        return await self.admin_repository.delete_admin(admin_id)
+        await self.admin_repository.delete_admin(admin_id)
+
+        return {"admin_id": admin_id, "message": f"Admin with id {admin_id} has been deleted."}

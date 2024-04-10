@@ -18,7 +18,7 @@ class AdminRepository:
         This method is used to retrieve all admins from the DB.
 
         Returns:
-            admins (Sequence[Admin])
+            admins (Sequence[AdminRead])
         """
 
         data = await self.session.execute(select(Admin))
@@ -31,10 +31,23 @@ class AdminRepository:
         This method is used to retrieve a certain admin from the DB by his 'id' field.
 
         Returns:
-            admins (Admin | None)
+            admin (AdminRead | None)
         """
 
         data = await self.session.execute(select(Admin).where(Admin.id == admin_id))
+        admin = data.scalars().first()
+
+        return admin
+
+    async def get_admin_by_username(self, admin_username: str) -> AdminRead | None:
+        """
+        This method is used to retrieve a certain admin from the DB by 'username' field.
+
+        Returns:
+            admin (AdminRead | None)
+        """
+
+        data = await self.session.execute(select(Admin).where(Admin.username == admin_username))
         admin = data.scalars().first()
 
         return admin
@@ -44,7 +57,7 @@ class AdminRepository:
         This method is used to create an admin with the given data ('AdminCreateHashedPassword' model).
 
         Returns:
-            created admin (dict[str, Any])
+            created admin data (dict[str, Any])
         """
 
         new_admin = Admin(**new_admin_data.model_dump())
@@ -59,11 +72,11 @@ class AdminRepository:
         This method is used to update the existing admin data with the new one ('AdminUpdate' model).
 
         Args:
-            new_data_for_admin (AdminUpdate): The updated admin data.
-            admin_id (int): An ID of admin to be updated
+            new_data_for_admin (AdminUpdateHashedPassword): The new data of admin to be updated.
+            admin_id (int): An ID of admin to be updated.
 
         Returns:
-            Admin: The updated admin object.
+            admin (AdminRead)
 
         Raises:
             HTTPException: If the admin with the given ID is not found.

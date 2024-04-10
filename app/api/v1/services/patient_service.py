@@ -3,6 +3,7 @@ from typing import Any, Sequence
 from fastapi import HTTPException
 from passlib.context import CryptContext
 
+from app.api.v1.repositories import patient_repository
 from app.api.v1.repositories.patient_repository import PatientRepository
 from app.api.v1.services.doctor_service import DoctorService
 from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientCreateHashedPassword, \
@@ -47,13 +48,23 @@ class PatientService:
     async def create_patient(self, raw_patient_data: PatientCreateRawPassword) -> dict[str, Any]:
         """
         This method is used to create a patient with the given data ('PatientCreateRawPassword' model).
-        Moreover, this method hashes the raw password by creating new DICT with added 'hashed_password' field and
+        Moreover, this method:
+        1). Hashes the raw password by creating new DICT with added 'hashed_password' field and
         deleted 'password' field. After this, it creates a new 'PatientCreateHashedPassword' object and sends it
         to the 'patient_repository'.
+        2). Checking if patient with given IIN already exists in the DB.
 
         Returns:
             created patient data (dict[str, Any])
+
+        Raises:
+            HTTPException (409): if patient with given IIN already exists in the DB.
         """
+
+        # Checking if patient with provided IIN already exists in the DB.
+        already_existing_patient_with_provided_IIN = await self.patient_repository.get_patient_by_IIN(raw_patient_data.IIN)
+        if already_existing_patient_with_provided_IIN:
+            raise HTTPException(status_code=409, detail=f"Patient with IIN {raw_patient_data.IIN} already exists.")
 
         # Checking the presence of a patient's doctor in the DB
         await self.doctor_service.get_doctor_by_id(raw_patient_data.doctor_id)
@@ -96,6 +107,9 @@ class PatientService:
 
         Returns:
             A dictionary containing the deleted patient ID and a message (dict).
+
+        Raises:
+            HTTPException (404): If the patient with given ID does not exist.
         """
 
         patient_to_delete = await self.patient_repository.get_patient_by_id(patient_id)

@@ -37,6 +37,19 @@ class DoctorRepository:
 
         return doctor
 
+    async def get_doctor_by_IIN(self, doctor_IIN: str) -> DoctorRead | None:
+        """
+        This method is used to retrieve a certain doctor from the DB by 'IIN' field.
+
+        Returns:
+            doctor (DoctorRead | None)
+        """
+
+        data = await self.session.execute(select(Doctor).where(Doctor.IIN == doctor_IIN))
+        doctor = data.scalars().first()
+
+        return doctor
+
     async def create_doctor(self, new_doctor_data: DoctorCreateHashedPassword) -> dict[str, Any]:
         """
         This method is used to create a doctor with the given data ('DoctorCreateHashedPassword' model).

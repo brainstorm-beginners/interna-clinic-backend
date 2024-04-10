@@ -73,7 +73,7 @@ async def update_admin(admin_id: int, new_data_for_admin: AdminUpdateRawPassword
 
 
 @router.delete("/admins/{admin_id}", response_model=None)
-async def delete_admin(admin_id: int, admin_service: AdminService = Depends(get_admin_service)):
+async def delete_admin(admin_id: int, admin_service: AdminService = Depends(get_admin_service)) -> dict:
     """
     This method is used to delete the existing admin with given id.
 
