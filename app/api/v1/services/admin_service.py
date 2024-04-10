@@ -19,18 +19,40 @@ class AdminService:
         self.admin_repository = admin_repository
 
     async def get_admins(self) -> Sequence[AdminRead]:
-        """Retrieves all admins from the database."""
+        """
+        This method is used to retrieve all admins from the DB.
+
+        Returns:
+            admins (Sequence[AdminRead])
+        """
+
         return await self.admin_repository.get_admins()
 
     async def get_admin_by_id(self, admin_id: int) -> AdminRead:
-        """Retrieves a specific admin by ID."""
+        """
+        This method is used to retrieve a certain admin from the DB by his 'id' field.
+
+        Returns:
+            admin (AdminRead | None)
+        """
+
         admin = await self.admin_repository.get_admin_by_id(admin_id)
+
         if not admin:
-            raise HTTPException(status_code=404, detail="Admin not found")
+            raise HTTPException(status_code=404, detail=f"Admin with id {admin_id} does not exist.")
+
         return admin
 
     async def register_admin(self, raw_admin_data: AdminCreateRawPassword) -> dict[str, Any]:
-        """Creates a new admin in the database."""
+        """
+        This method is used to create an admin with the given data ('AdminCreateRawPassword' model).
+        Moreover, this method hashes the raw password by creating new DICT with added 'hashed_password' field and
+        deleted 'password' field. After this, it creates a new 'AdminCreateHashedPassword' object and sends it
+        to the 'admin_repository'.
+
+        Returns:
+            created admin data (dict[str, Any])
+        """
 
         hashed_password = hash_password(raw_admin_data.password)
 
@@ -52,7 +74,7 @@ class AdminService:
 
         admin_to_update = await self.admin_repository.get_admin_by_id(admin_id)
         if admin_to_update is None:
-            raise HTTPException(status_code=404, detail=f"Patient with id {admin_id} does not exist.")
+            raise HTTPException(status_code=404, detail=f"Admin with id {admin_id} does not exist.")
 
         hashed_password = hash_password(new_data_for_admin.password)
 
@@ -66,12 +88,14 @@ class AdminService:
 
     async def delete_admin(self, admin_id: int) -> int:
         """
-            Deleting admin from the database.
+        This method is used to delete the existing admin with given id.
+
         Raises:
             HTTPException: If admin not find.
         """
-        try:
-            admin = await self.admin_repository.delete_admin(admin_id)
-            return admin
-        except HTTPException as exc:
-            raise exc
+
+        admin_to_delete = await self.admin_repository.get_admin_by_id(admin_id)
+        if admin_to_delete is None:
+            raise HTTPException(status_code=404, detail=f"Admin with id {admin_id} does not exist.")
+
+        return await self.admin_repository.delete_admin(admin_id)

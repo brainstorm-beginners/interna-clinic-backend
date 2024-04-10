@@ -73,7 +73,7 @@ async def update_doctor(new_data_for_doctor: DoctorUpdateRawPassword, doctor_id:
 
 
 @router.delete("/doctors/{doctor_id}", response_model=None)
-async def delete_doctor(doctor_id: int, doctor_service: DoctorService = Depends(get_doctor_service)) -> int:
+async def delete_doctor(doctor_id: int, doctor_service: DoctorService = Depends(get_doctor_service)) -> dict:
     """
     This method is used to delete the existing doctor with given id.
 

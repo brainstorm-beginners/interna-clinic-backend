@@ -54,12 +54,13 @@ class AdminRepository:
 
         return new_admin
 
-    async def update_admin(self, new_data_for_admin: AdminUpdateHashedPassword) -> AdminRead:
+    async def update_admin(self, new_data_for_admin: AdminUpdateHashedPassword, admin_id: int) -> AdminRead:
         """
         This method is used to update the existing admin data with the new one ('AdminUpdate' model).
 
         Args:
             new_data_for_admin (AdminUpdate): The updated admin data.
+            admin_id (int): An ID of admin to be updated
 
         Returns:
             Admin: The updated admin object.
@@ -68,7 +69,7 @@ class AdminRepository:
             HTTPException: If the admin with the given ID is not found.
         """
 
-        admin_to_update = await self.get_admin_by_id(new_data_for_admin.id)
+        admin_to_update = await self.get_admin_by_id(admin_id)
 
         for key, value in new_data_for_admin.model_dump().items():
             setattr(admin_to_update, key, value)

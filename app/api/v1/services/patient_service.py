@@ -3,7 +3,6 @@ from typing import Any, Sequence
 from fastapi import HTTPException
 from passlib.context import CryptContext
 
-from app.api.v1.repositories.doctor_repository import DoctorRepository
 from app.api.v1.repositories.patient_repository import PatientRepository
 from app.api.v1.services.doctor_service import DoctorService
 from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientCreateHashedPassword, \
@@ -36,7 +35,7 @@ class PatientService:
         This method is used to retrieve a certain patient from the DB by his 'id' field.
 
         Returns:
-            patients (Patient | None)
+            patient (PatientRead | None)
         """
 
         patient = await self.patient_repository.get_patient_by_id(patient_id)
@@ -48,11 +47,16 @@ class PatientService:
     async def create_patient(self, raw_patient_data: PatientCreateRawPassword) -> dict[str, Any]:
         """
         This method is used to create a patient with the given data ('PatientCreateRawPassword' model).
-        Moreover, this method hashes the raw password.
+        Moreover, this method hashes the raw password by creating new DICT with added 'hashed_password' field and
+        deleted 'password' field. After this, it creates a new 'PatientCreateHashedPassword' object and sends it
+        to the 'patient_repository'.
 
         Returns:
-            created patient (dict[str, Any])
+            created patient data (dict[str, Any])
         """
+
+        # Checking the presence of a patient's doctor in the DB
+        await self.doctor_service.get_doctor_by_id(raw_patient_data.doctor_id)
 
         hashed_password = hash_password(raw_patient_data.password)
 
@@ -62,13 +66,6 @@ class PatientService:
 
         patient_with_hashed_password = PatientCreateHashedPassword(**patient_data)
 
-        doctor_id = patient_data.get("doctor_id")
-
-        if not await self.doctor_service.get_doctor_by_id(doctor_id):
-            raise HTTPException(
-                status_code=404, detail=f"Doctor with id {doctor_id} does not exist."
-            )
-
         return await self.patient_repository.create_patient(patient_with_hashed_password)
 
     async def update_patient(self, patient_id: int, new_data_for_patient: PatientUpdateRawPassword) -> PatientRead:
@@ -76,7 +73,7 @@ class PatientService:
         This method is used to update the existing patient data with the new one ('PatientUpdate' model).
 
         Returns:
-            updated patient (dict[str, Any])
+            updated patient (PatientRead)
         """
 
         patient_to_update = await self.patient_repository.get_patient_by_id(patient_id)
@@ -91,18 +88,20 @@ class PatientService:
 
         patient_with_hashed_password = PatientUpdateHashedPassword(**patient_data)
 
-        return await self.patient_repository.update_patient(patient_with_hashed_password, patient_id)
+        return await self.patient_repository.update_patient(patient_id, patient_with_hashed_password)
 
-    async def delete_patient(self, patient_id: int) -> int:
+    async def delete_patient(self, patient_id: int) -> dict:
         """
         This method is used to delete the existing patient with given id.
 
         Returns:
-            deleted patient ID (int)
+            A dictionary containing the deleted patient ID and a message (dict).
         """
 
         patient_to_delete = await self.patient_repository.get_patient_by_id(patient_id)
         if patient_to_delete is None:
             raise HTTPException(status_code=404, detail=f"Patient with id {patient_id} does not exist.")
 
-        return await self.patient_repository.delete_patient(patient_id)
+        await self.patient_repository.delete_patient(patient_id)
+
+        return {"patient_id": patient_id, "message": f"Patient with id {patient_id} has been deleted."}

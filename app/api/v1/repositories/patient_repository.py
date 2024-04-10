@@ -1,6 +1,5 @@
 from typing import Sequence, Any
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

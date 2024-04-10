@@ -1,6 +1,5 @@
 from typing import Sequence, Any
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -86,8 +85,6 @@ class DoctorRepository:
         """
 
         doctor_to_delete = await self.get_doctor_by_id(doctor_id)
-        if doctor_to_delete is None:
-            raise HTTPException(status_code=404, detail=f"Patient with id {doctor_id} does not exist.")
 
         await self.session.delete(doctor_to_delete)
         await self.session.commit()

@@ -6,7 +6,7 @@ Base = declarative_base(metadata=models_metadata)
 
 
 class Patient(Base):
-    __tablename__ = 'users'
+    __tablename__ = 'patients'
     metadata = models_metadata
 
     id = Column(Integer, primary_key=True, index=True)
@@ -53,5 +53,5 @@ class Admin(Base):
     first_name = Column(String(256), nullable=False)
     last_name = Column(String(256), nullable=False)
     middle_name = Column(String(256), nullable=False)
-    username = Column(String(12), nullable=False, unique=True)
+    username = Column(String(256), nullable=False, unique=True)
     hashed_password = Column(String(1024), nullable=False, default=False)

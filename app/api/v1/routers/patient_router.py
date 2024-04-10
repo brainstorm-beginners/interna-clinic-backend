@@ -73,15 +73,14 @@ async def update_patient(patient_id: int, new_data_for_patient: PatientUpdateRaw
 
 
 @router.delete("/patients/{patient_id}", response_model=None)
-async def delete_patient(patient_id: int, patient_service: PatientService = Depends(get_patient_service)) -> int:
+async def delete_patient(patient_id: int, patient_service: PatientService = Depends(get_patient_service)) -> dict:
     """
     This method is used to delete the existing patient with given id.
 
     Returns:
-        deleted patient ID (int)
+        A dictionary containing the deleted patient ID and a message (dict)
     """
 
-    patient_to_delete = await patient_service.delete_patient(patient_id)
+    result = await patient_service.delete_patient(patient_id)
 
-    return patient_to_delete
-
+    return result

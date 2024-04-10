@@ -60,7 +60,7 @@ async def register_admin(new_admin_data: AdminCreateRawPassword, admin_service: 
 
 
 @router.put("/admins/{admin_id}", response_model=AdminRead)
-async def update_admin(admin_id: int, admin_data: AdminUpdateRawPassword, session: AsyncSession = Depends(get_async_session)):
+async def update_admin(admin_id: int, new_data_for_admin: AdminUpdateRawPassword, admin_service: AdminService = Depends(get_admin_service)):
     """
     This method is used to update the existing admin data with the new one ('AdminUpdate' model).
 
@@ -68,14 +68,12 @@ async def update_admin(admin_id: int, admin_data: AdminUpdateRawPassword, sessio
         updated admin (dict[str, Any])
     """
 
-    admin_repository = AdminRepository(session)
-
-    admin = await admin_repository.update_admin(admin_id, admin_data)
+    admin = await admin_service.update_admin(new_data_for_admin, admin_id)
     return admin
 
 
 @router.delete("/admins/{admin_id}", response_model=None)
-async def delete_admin(admin_id: int, session: AsyncSession = Depends(get_async_session)):
+async def delete_admin(admin_id: int, admin_service: AdminService = Depends(get_admin_service)):
     """
     This method is used to delete the existing admin with given id.
 
@@ -83,7 +81,6 @@ async def delete_admin(admin_id: int, session: AsyncSession = Depends(get_async_
         deleted admin ID (int)
     """
 
-    admin_repository = AdminRepository(session)
+    admin_to_delete = await admin_service.delete_admin(admin_id)
 
-    admin = await admin_repository.delete_admin(admin_id)
-    return None
+    return admin_to_delete
