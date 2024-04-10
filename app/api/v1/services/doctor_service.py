@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.api.v1.repositories.doctor_repository import DoctorRepository
 from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorCreateHashedPassword, \
-    DoctorUpdateRawPassword, DoctorUpdateHashedPassword
+    DoctorUpdateRawPassword, DoctorUpdateHashedPassword, PatientRead
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -45,6 +45,23 @@ class DoctorService:
             raise HTTPException(status_code=404, detail=f"Doctor with id {doctor_id} doest not exist.")
 
         return doctor
+
+    async def get_doctor_patients(self, doctor_id: int) -> Sequence[PatientRead]:
+        """
+        Retrieve list of doctor's patients, assigned to the doctor with this ID.
+
+        Argument:
+            doctor_id (int): Doctor ID
+
+        Returns:
+            Sequence[PatientRead]: List of patients, assigned to the doctor
+        """
+        existing_doctor = await self.get_doctor_by_id(doctor_id)
+        if not existing_doctor:
+            raise HTTPException(status_code=404, detail=f"Doctor with id {doctor_id} does not exist.")
+
+        doctor_patients = await self.doctor_repository.get_doctor_patients(doctor_id)
+        return doctor_patients
 
     async def create_doctor(self, raw_doctor_data: DoctorCreateRawPassword) -> dict[str, Any]:
         """

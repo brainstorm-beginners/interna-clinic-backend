@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.v1.services.doctor_service import DoctorService
 from app.dependencies import get_doctor_service
-from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorUpdateRawPassword
+from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorUpdateRawPassword, PatientRead
 
 router = APIRouter(
     tags=["Doctor"],
@@ -41,6 +41,19 @@ async def get_doctor_by_id(doctor_id: int, doctor_service: DoctorService = Depen
     doctor = await doctor_service.get_doctor_by_id(doctor_id)
 
     return doctor
+
+
+@router.get("/doctors/{doctor_id}/patients", response_model=List[PatientRead])
+async def get_doctor_patients(doctor_id: int, doctor_service: DoctorService = Depends(get_doctor_service)):
+    """
+    This method retrieve list of doctor's patients, assigned to the doctor with this ID.
+
+    Returns:
+        List[PatientRead]: List of patients, assigned to the doctor
+    """
+
+    doctor_patients = await doctor_service.get_doctor_patients(doctor_id)
+    return doctor_patients
 
 
 # TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.

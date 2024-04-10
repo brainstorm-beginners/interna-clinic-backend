@@ -3,8 +3,8 @@ from typing import Sequence, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.models import Doctor
-from app.schemas.schemas import DoctorRead, DoctorCreateHashedPassword, DoctorUpdateHashedPassword
+from app.models.models import Doctor, Patient
+from app.schemas.schemas import DoctorRead, DoctorCreateHashedPassword, DoctorUpdateHashedPassword, PatientRead
 
 
 class DoctorRepository:
@@ -49,6 +49,23 @@ class DoctorRepository:
         doctor = data.scalars().first()
 
         return doctor
+
+    async def get_doctor_patients(self, doctor_id: int) -> Sequence[PatientRead]:
+        """
+        Retrieve list of doctor's patients, assigned to the doctor with this ID.
+
+        Arguments:
+            doctor_id (int): doctor ID
+
+        Returns:
+            Sequence[PatientRead]: List of patients, assigned to the doctor
+        """
+
+        query = select(Patient).where(Patient.doctor_id == doctor_id)
+        data = await self.session.execute(query)
+        doctor_patients = data.scalars().all()
+
+        return doctor_patients
 
     async def create_doctor(self, new_doctor_data: DoctorCreateHashedPassword) -> dict[str, Any]:
         """
