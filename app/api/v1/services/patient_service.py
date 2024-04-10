@@ -3,7 +3,6 @@ from typing import Any, Sequence
 from fastapi import HTTPException
 from passlib.context import CryptContext
 
-from app.api.v1.repositories import patient_repository
 from app.api.v1.repositories.patient_repository import PatientRepository
 from app.api.v1.services.doctor_service import DoctorService
 from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientCreateHashedPassword, \
