@@ -6,6 +6,13 @@ from app.config.env_config import SECRET_KEY, ALGORITHM
 
 
 def create_token(*, data: dict, token_type: str, expires_delta: timedelta = None):
+    """
+    This method is used to generate JWT token (ACCESS or REFRESH types) with using 'jwt' library
+
+    Returns:
+        JWT: ACCESS or REFRESH (jwt)
+    """
+
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta

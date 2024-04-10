@@ -17,35 +17,41 @@ router = APIRouter(
     prefix="/api/v1/auth"
 )
 
-
-credentials_exception = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials",
-    headers={"WWW-Authenticate": "Bearer"},
-)
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_async_session)):
+    """
+    This method is used to authenticate a user ('Patient', 'Doctor', or 'Admin' instance) by checking their presence
+    in the DB and  verifying the raw password with the hashed password in the DB.
+
+    Returns:
+        A dictionary containing the access token, token type, and refresh token if the user is authenticated
+        successfully.
+
+    Raises:
+        HTTPException (400): If user's role was not given correctly.
+        HTTPException (401): If user's data (username (or IIN)) doesn't math with DB data.
+    """
+
     user_role = form_data.scopes[0]
     username = form_data.username
     password = form_data.password
 
-    if user_role == "patient":
+    if user_role == "Patient":
         user = await authenticate_patient(username, password, session)
-    elif user_role == "doctor":
+    elif user_role == "Doctor":
         user = await authenticate_doctor(username, password, session)
-    elif user_role == "admin":
+    elif user_role == "Admin":
         user = await authenticate_admin(username, password, session)
     else:
-        raise HTTPException(status_code=400, detail="Invalid user role")
+        raise HTTPException(status_code=400, detail="Invalid user role.")
 
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password.")
 
-    user_auth_id = user.IIN if user_role in ["patient", "doctor"] else user.username
+    user_auth_id = user.IIN if user_role in ["Patient", "Doctor"] else user.username
 
     access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = create_token(
@@ -60,13 +66,28 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer", "refresh_token": refresh_token}
 
 
-import logging
+credentials_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials.",
+    headers={"WWW-Authenticate": "Bearer"},
+)
 
-logging.basicConfig(level=logging.INFO)
 
-
+# TODO: Change 'refresh_token_data' type from 'RefreshTokenRequest' to Depends(oauth2_scheme).
 @router.post("/refresh", response_model=Token)
 async def refresh_token(refresh_token_data: RefreshTokenRequest):
+    """
+    This method is used to refresh the access token of a user. It takes the refresh token as input, verifies it,
+    and returns a new access token.
+
+    Returns:
+        A dictionary containing the new access token, token type, and refresh token if the refresh token is valid.
+
+    Raises:
+        HTTPException (401): If the refresh token is missing 'sub' or 'exp' in payload, or if the token is expired,
+        or if there is a JWTError while decoding the token.
+    """
+
     refresh_token = refresh_token_data.refresh_token
 
     try:
@@ -74,20 +95,16 @@ async def refresh_token(refresh_token_data: RefreshTokenRequest):
         user_auth_id = payload.get("sub")
 
         if user_auth_id is None:
-            logging.info("Missing 'sub' in payload")
             raise credentials_exception
         token_expires = payload.get("exp")
 
         if token_expires is None:
-            logging.info("Missing 'exp' in payload")
             raise credentials_exception
 
         if datetime.now() > datetime.fromtimestamp(token_expires):
-            logging.info("Token expired")
             raise credentials_exception
 
     except JWTError:
-        logging.info("JWTError occurred")
         raise credentials_exception
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
