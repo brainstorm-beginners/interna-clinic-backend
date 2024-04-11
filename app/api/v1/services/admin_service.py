@@ -39,6 +39,8 @@ class AdminService:
 
         Raises:
             HTTPException (404): if the admin with given ID does not exist.
+            HTTPException (403): if the role isn't admin
+            JWTError: if the token isn't validate or wrong
         """
 
         try:
@@ -73,6 +75,7 @@ class AdminService:
             HTTPException (409): if admin with given username already exists in the DB.
         """
 
+        # Checking if admin with provided username already exists in the DB.
         already_existing_admin_with_provided_username = await self.admin_repository.get_admin_by_username(raw_admin_data.username)
         if already_existing_admin_with_provided_username:
             raise HTTPException(status_code=409, detail=f"Admin with username {raw_admin_data.username} already exists.")

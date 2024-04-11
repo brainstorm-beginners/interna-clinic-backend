@@ -23,7 +23,7 @@ def verify_token(token: str) -> Tuple[str, dict]:
         token (str): The JWT token to verify.
 
     Returns:
-        bool: Retrieve boolean.
+        Tuple: Retrieve a user role and payload in tuple.
 
     Raises:
         ExpiredSignatureError: If the token is expired.
