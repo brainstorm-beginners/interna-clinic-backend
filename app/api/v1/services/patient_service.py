@@ -44,6 +44,20 @@ class PatientService:
 
         return patient
 
+    async def get_patient_by_IIN(self, patient_IIN: str) -> PatientRead | None:
+        """
+        This method is used to retrieve a certain patient from the DB by his 'IIN' field.
+
+        Returns:
+            patient (PatientRead | None)
+        """
+
+        patient = await self.patient_repository.get_patient_by_IIN(patient_IIN)
+        if not patient:
+            raise HTTPException(status_code=404, detail=f"Patient with IIN {patient_IIN} does not exist.")
+
+        return patient
+
     async def create_patient(self, raw_patient_data: PatientCreateRawPassword) -> dict[str, Any]:
         """
         This method is used to create a patient with the given data ('PatientCreateRawPassword' model).
