@@ -2,6 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
+from app.api.v1.auth.auth_router import oauth2_scheme
 from app.api.v1.services.admin_service import AdminService
 from app.dependencies import get_admin_service
 from app.schemas.schemas import AdminRead, AdminCreateRawPassword, AdminUpdateRawPassword
@@ -30,7 +31,8 @@ async def get_admins(admin_service: AdminService = Depends(get_admin_service), p
 
 
 @router.get("/admins/{admin_id}", response_model=AdminRead)
-async def get_admin_by_id(admin_id: int, admin_service: AdminService = Depends(get_admin_service)):
+async def get_admin_by_id(admin_id: int, token: str = Depends(oauth2_scheme),
+                          admin_service: AdminService = Depends(get_admin_service)):
     """
     This method is used to retrieve a certain admin from the DB.
 
@@ -38,7 +40,7 @@ async def get_admin_by_id(admin_id: int, admin_service: AdminService = Depends(g
         admin (AdminRead)
     """
 
-    admin = await admin_service.get_admin_by_id(admin_id)
+    admin = await admin_service.get_admin_by_id(admin_id, token)
 
     return admin
 

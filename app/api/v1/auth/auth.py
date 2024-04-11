@@ -1,11 +1,41 @@
+from fastapi import HTTPException
+from jose import ExpiredSignatureError
+from jose.exceptions import JWTClaimsError
+from jose.jwt import decode
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 
+from app.config.env_config import SECRET_KEY, ALGORITHM
 from app.models.models import Patient, Doctor, Admin
 from app.schemas.schemas import PatientRead, DoctorRead, AdminRead
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_token(token: str) -> bool:
+    """
+    This function verifies the validity of a JWT token.
+
+    Args:
+        token (str): The JWT token to verify.
+
+    Returns:
+        bool: Retrieve boolean.
+
+    Raises:
+        ExpiredSignatureError: If the token is expired.
+        JWTClaimsError: If the token has invalid claims.
+    """
+
+    try:
+        payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except JWTClaimsError:
+        raise HTTPException(status_code=401, detail="Invalid token claims")
+
+    return payload
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

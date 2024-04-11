@@ -1,10 +1,12 @@
 from typing import Sequence, Any
 
 from fastapi import HTTPException
+from jose.exceptions import JWTError
 from passlib.context import CryptContext
 
 from app.schemas.schemas import AdminRead, AdminCreateRawPassword, AdminCreateHashedPassword, \
     AdminUpdateRawPassword, AdminUpdateHashedPassword
+from ..auth.auth import verify_token
 from ..repositories.admin_repository import AdminRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -28,7 +30,7 @@ class AdminService:
 
         return await self.admin_repository.get_admins()
 
-    async def get_admin_by_id(self, admin_id: int) -> AdminRead:
+    async def get_admin_by_id(self, admin_id: int, token: str) -> AdminRead:
         """
         This method is used to retrieve a certain admin from the DB by his 'id' field.
 
@@ -38,6 +40,11 @@ class AdminService:
         Raises:
             HTTPException (404): if the admin with given ID does not exist.
         """
+
+        try:
+            verify_token(token)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         admin = await self.admin_repository.get_admin_by_id(admin_id)
 

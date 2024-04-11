@@ -2,6 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
+from app.api.v1.auth.auth_router import oauth2_scheme
 from app.api.v1.services.patient_service import PatientService
 from app.dependencies import get_patient_service
 from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientUpdateRawPassword
@@ -44,7 +45,8 @@ async def get_patient_by_id(patient_id: int, patient_service: PatientService = D
 
 
 @router.get("/patients/IIN/{patient_IIN}", response_model=PatientRead)
-async def get_patient_by_IIN(patient_IIN: str, patient_service: PatientService = Depends(get_patient_service)):
+async def get_patient_by_IIN(patient_IIN: str, token: str = Depends(oauth2_scheme),
+                             patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to retrieve a certain patient from the DB by his IIN.
 
@@ -52,7 +54,7 @@ async def get_patient_by_IIN(patient_IIN: str, patient_service: PatientService =
         patient (PatientRead)
     """
 
-    patient = await patient_service.get_patient_by_IIN(patient_IIN)
+    patient = await patient_service.get_patient_by_IIN(patient_IIN, token)
 
     return patient
 

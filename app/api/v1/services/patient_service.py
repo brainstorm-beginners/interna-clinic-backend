@@ -1,8 +1,10 @@
 from typing import Any, Sequence
 
 from fastapi import HTTPException
+from jose import JWTError
 from passlib.context import CryptContext
 
+from app.api.v1.auth.auth import verify_token
 from app.api.v1.repositories.patient_repository import PatientRepository
 from app.api.v1.services.doctor_service import DoctorService
 from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientCreateHashedPassword, \
@@ -44,13 +46,18 @@ class PatientService:
 
         return patient
 
-    async def get_patient_by_IIN(self, patient_IIN: str) -> PatientRead | None:
+    async def get_patient_by_IIN(self, patient_IIN: str, token: str) -> PatientRead | None:
         """
         This method is used to retrieve a certain patient from the DB by his 'IIN' field.
 
         Returns:
             patient (PatientRead | None)
         """
+
+        try:
+            verify_token(token)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         patient = await self.patient_repository.get_patient_by_IIN(patient_IIN)
         if not patient:
