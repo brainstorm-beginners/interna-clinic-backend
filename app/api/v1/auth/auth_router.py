@@ -55,12 +55,12 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
     access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = create_token(
-        data={"sub": user_auth_id}, token_type="access", expires_delta=access_token_expires
+        data={"sub": user_auth_id, "user_role": user_role}, token_type="access", expires_delta=access_token_expires
     )
 
     refresh_token_expires = timedelta(minutes=int(REFRESH_TOKEN_EXPIRE_MINUTES))
     refresh_token = create_token(
-        data={"sub": user_auth_id}, token_type="refresh", expires_delta=refresh_token_expires
+        data={"sub": user_auth_id, "user_role": user_role}, token_type="refresh", expires_delta=refresh_token_expires
     )
 
     return {"access_token": access_token, "token_type": "bearer", "refresh_token": refresh_token}
@@ -73,9 +73,8 @@ credentials_exception = HTTPException(
 )
 
 
-# TODO: Change 'refresh_token_data' type from 'RefreshTokenRequest' to Depends(oauth2_scheme).
 @router.post("/refresh", response_model=Token)
-async def refresh_token(refresh_token_data: RefreshTokenRequest):
+async def refresh_token(refresh_token_data: str = Depends(oauth2_scheme)):
     """
     This method is used to refresh the access token of a user. It takes the refresh token as input, verifies it,
     and returns a new access token.

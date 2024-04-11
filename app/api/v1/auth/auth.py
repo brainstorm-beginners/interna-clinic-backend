@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from fastapi import HTTPException
 from jose import ExpiredSignatureError
 from jose.exceptions import JWTClaimsError
@@ -13,7 +15,7 @@ from app.schemas.schemas import PatientRead, DoctorRead, AdminRead
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_token(token: str) -> bool:
+def verify_token(token: str) -> Tuple[str, dict]:
     """
     This function verifies the validity of a JWT token.
 
@@ -30,12 +32,13 @@ def verify_token(token: str) -> bool:
 
     try:
         payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_role = payload.get("user_role")
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
     except JWTClaimsError:
         raise HTTPException(status_code=401, detail="Invalid token claims")
 
-    return payload
+    return user_role, payload
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

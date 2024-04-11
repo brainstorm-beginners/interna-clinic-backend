@@ -42,7 +42,11 @@ class AdminService:
         """
 
         try:
-            verify_token(token)
+            user_role = verify_token(token)
+            if user_role not in ["Patient", "Doctor"]:
+                pass
+            else:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -69,7 +73,6 @@ class AdminService:
             HTTPException (409): if admin with given username already exists in the DB.
         """
 
-        # Checking if admin with provided username already exists in the DB.
         already_existing_admin_with_provided_username = await self.admin_repository.get_admin_by_username(raw_admin_data.username)
         if already_existing_admin_with_provided_username:
             raise HTTPException(status_code=409, detail=f"Admin with username {raw_admin_data.username} already exists.")
