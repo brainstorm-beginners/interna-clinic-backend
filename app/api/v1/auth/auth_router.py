@@ -35,9 +35,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         HTTPException (401): If user's data (username (or IIN)) doesn't math with DB data.
     """
 
-    user_role = form_data.scopes[0]
     username = form_data.username
     password = form_data.password
+    user_role = form_data.scopes[0]
 
     if user_role == "Patient":
         user = await authenticate_patient(username, password, session)
