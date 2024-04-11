@@ -43,6 +43,20 @@ async def get_patient_by_id(patient_id: int, patient_service: PatientService = D
     return patient
 
 
+@router.get("/patients/IIN/{patient_IIN}", response_model=PatientRead)
+async def get_patient_by_IIN(patient_IIN: str, patient_service: PatientService = Depends(get_patient_service)):
+    """
+    This method is used to retrieve a certain patient from the DB by his IIN.
+
+    Returns:
+        patient (PatientRead)
+    """
+
+    patient = await patient_service.get_patient_by_IIN(patient_IIN)
+
+    return patient
+
+
 # TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.
 @router.post("/patients/register", response_model=PatientRead)
 async def create_patient(new_patient_data: PatientCreateRawPassword, patient_service: PatientService = Depends(get_patient_service)):
