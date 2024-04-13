@@ -1,9 +1,8 @@
+from datetime import datetime
 from typing import Tuple
 
 from fastapi import HTTPException
-from jose import ExpiredSignatureError
-from jose.exceptions import JWTClaimsError
-from jose.jwt import decode
+from jose import jwt, ExpiredSignatureError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
@@ -31,11 +30,13 @@ def verify_token(token: str) -> Tuple[str, dict]:
     """
 
     try:
-        payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if datetime.now() > datetime.fromtimestamp(payload['exp']):
+            raise ExpiredSignatureError()
         user_role = payload.get("user_role")
-    except ExpiredSignatureError:
+    except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
-    except JWTClaimsError:
+    except jwt.JWTClaimsError:
         raise HTTPException(status_code=401, detail="Invalid token claims")
 
     return user_role, payload

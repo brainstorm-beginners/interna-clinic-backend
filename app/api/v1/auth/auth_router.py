@@ -8,8 +8,8 @@ from starlette import status
 
 from app.api.v1.auth.auth import authenticate_patient, authenticate_doctor, authenticate_admin
 from app.api.v1.auth.jwt.token import create_token
-from app.api.v1.auth.jwt.token_schema import Token, RefreshTokenRequest
-from app.config.env_config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+from app.api.v1.auth.jwt.token_schema import Token
+from app.config.env_config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY, ALGORITHM
 from app.dependencies import get_async_session
 
 router = APIRouter(
@@ -58,7 +58,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user_auth_id, "user_role": user_role}, token_type="access", expires_delta=access_token_expires
     )
 
-    refresh_token_expires = timedelta(minutes=int(REFRESH_TOKEN_EXPIRE_MINUTES))
+    refresh_token_expires = timedelta(days=int(REFRESH_TOKEN_EXPIRE_DAYS))
     refresh_token = create_token(
         data={"sub": user_auth_id, "user_role": user_role}, token_type="refresh", expires_delta=refresh_token_expires
     )
@@ -87,7 +87,7 @@ async def refresh_token(refresh_token_data: str = Depends(oauth2_scheme)):
         or if there is a JWTError while decoding the token.
     """
 
-    refresh_token = refresh_token_data.refresh_token
+    refresh_token = refresh_token_data
 
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -111,7 +111,7 @@ async def refresh_token(refresh_token_data: str = Depends(oauth2_scheme)):
         data={"sub": user_auth_id}, token_type="access", expires_delta=access_token_expires
     )
 
-    refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     refresh_token = create_token(
         data={"sub": user_auth_id}, token_type="refresh", expires_delta=refresh_token_expires
     )
