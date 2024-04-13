@@ -14,7 +14,7 @@ router = APIRouter(
 
 
 @router.get("/admins", response_model=List[AdminRead])
-async def get_admins(token: str, admin_service: AdminService = Depends(get_admin_service),
+async def get_admins(token: str = Depends(oauth2_scheme), admin_service: AdminService = Depends(get_admin_service),
                      page: int = 1, page_size: int = 10):
     """
     This method is used to retrieve all admins from the DB with given page and page size.
