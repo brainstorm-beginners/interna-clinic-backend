@@ -89,6 +89,13 @@ class DoctorRead(BaseModel):
     qualification: DoctorQualificationEnum
 
 
+class DoctorReadFullName(BaseModel):
+    first_name: str
+    last_name: str
+    middle_name: str
+    qualification: DoctorQualificationEnum
+
+
 class DoctorCreateRawPassword(BaseModel):
     first_name: str
     last_name: str

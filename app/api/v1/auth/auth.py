@@ -14,7 +14,7 @@ from app.schemas.schemas import PatientRead, DoctorRead, AdminRead
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_token(token: str) -> Tuple[str, dict]:
+def verify_token(token: str) -> dict:
     """
     This function verifies the validity of a JWT token.
 
@@ -33,13 +33,12 @@ def verify_token(token: str) -> Tuple[str, dict]:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if datetime.now() > datetime.fromtimestamp(payload['exp']):
             raise ExpiredSignatureError()
-        user_role = payload.get("user_role")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.JWTClaimsError:
         raise HTTPException(status_code=401, detail="Invalid token claims")
 
-    return user_role, payload
+    return payload
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

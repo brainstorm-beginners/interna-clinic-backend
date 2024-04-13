@@ -59,9 +59,10 @@ async def get_patient_by_IIN(patient_IIN: str, token: str = Depends(oauth2_schem
     return patient
 
 
-# TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.
+# TODO: Check token in header
 @router.post("/patients/register", response_model=PatientRead)
-async def create_patient(new_patient_data: PatientCreateRawPassword, patient_service: PatientService = Depends(get_patient_service)):
+async def create_patient(new_patient_data: PatientCreateRawPassword, token: str = Depends(oauth2_scheme),
+                         patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to create a patient with the given data ('PatientCreate' model).
 
@@ -69,13 +70,15 @@ async def create_patient(new_patient_data: PatientCreateRawPassword, patient_ser
         created patient (dict[str, Any])
     """
 
-    new_patient = await patient_service.create_patient(new_patient_data)
+    new_patient = await patient_service.create_patient(token, new_patient_data)
 
     return new_patient
 
 
 @router.put("/patients/{patient_id}", response_model=PatientRead)
-async def update_patient(patient_id: int, new_data_for_patient: PatientUpdateRawPassword, patient_service: PatientService = Depends(get_patient_service)):
+async def update_patient(patient_id: int, new_data_for_patient: PatientUpdateRawPassword,
+                         token: str = Depends(oauth2_scheme),
+                         patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to update the existing patient data with the new one ('PatientUpdateRawPassword' model).
 
@@ -83,13 +86,14 @@ async def update_patient(patient_id: int, new_data_for_patient: PatientUpdateRaw
         updated patient (dict[str, Any])
     """
 
-    patient_to_update = await patient_service.update_patient(patient_id, new_data_for_patient)
+    patient_to_update = await patient_service.update_patient(patient_id, token, new_data_for_patient)
 
     return patient_to_update
 
 
-@router.delete("/patients/{patient_id}", response_model=None)
-async def delete_patient(patient_id: int, patient_service: PatientService = Depends(get_patient_service)) -> dict:
+@router.delete("/patients/delete/{patient_id}", response_model=None)
+async def delete_patient(patient_id: int, token: str = Depends(oauth2_scheme),
+                         patient_service: PatientService = Depends(get_patient_service)) -> dict:
     """
     This method is used to delete the existing patient with given id.
 
@@ -97,6 +101,6 @@ async def delete_patient(patient_id: int, patient_service: PatientService = Depe
         A dictionary containing the deleted patient ID and a message (dict)
     """
 
-    result = await patient_service.delete_patient(patient_id)
+    result = await patient_service.delete_patient(patient_id, token)
 
     return result

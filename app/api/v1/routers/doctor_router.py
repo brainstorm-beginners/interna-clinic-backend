@@ -2,9 +2,11 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
+from app.api.v1.auth.auth_router import oauth2_scheme
 from app.api.v1.services.doctor_service import DoctorService
 from app.dependencies import get_doctor_service
-from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorUpdateRawPassword, PatientRead
+from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorUpdateRawPassword, PatientRead, \
+    DoctorReadFullName
 
 router = APIRouter(
     tags=["Doctor"],
@@ -13,7 +15,8 @@ router = APIRouter(
 
 
 @router.get("/doctors", response_model=List[DoctorRead])
-async def get_doctors(doctor_service: DoctorService = Depends(get_doctor_service), page: int = 1, page_size: int = 10):
+async def get_doctors(token: str = Depends(oauth2_scheme), doctor_service: DoctorService = Depends(get_doctor_service),
+                      page: int = 1, page_size: int = 10):
     """
     This method is used to retrieve all doctors from the DB with given page and page size.
 
@@ -21,7 +24,7 @@ async def get_doctors(doctor_service: DoctorService = Depends(get_doctor_service
         doctors (List[PatientRead][start:end])
     """
 
-    doctors = await doctor_service.get_doctors()
+    doctors = await doctor_service.get_doctors(token)
 
     start = (page - 1) * page_size
     end = start + page_size
@@ -30,7 +33,8 @@ async def get_doctors(doctor_service: DoctorService = Depends(get_doctor_service
 
 
 @router.get("/doctors/{doctor_id}", response_model=DoctorRead)
-async def get_doctor_by_id(doctor_id: int, doctor_service: DoctorService = Depends(get_doctor_service)):
+async def get_doctor_by_id(doctor_id: int , token: str = Depends(oauth2_scheme),
+                           doctor_service: DoctorService = Depends(get_doctor_service)):
     """
     This method is used to retrieve a certain doctor from the DB.
 
@@ -38,13 +42,44 @@ async def get_doctor_by_id(doctor_id: int, doctor_service: DoctorService = Depen
         doctor (DoctorRead)
     """
 
-    doctor = await doctor_service.get_doctor_by_id(doctor_id)
+    doctor = await doctor_service.get_doctor_by_id(doctor_id, token)
+
+    return doctor
+
+
+@router.get("/doctors/IIN/{doctor_IIN}", response_model=DoctorRead)
+async def get_doctor_by_IIN(doctor_IIN: str, token: str = Depends(oauth2_scheme),
+                            doctor_service: DoctorService = Depends(get_doctor_service)):
+    """
+    This method is used to retrieve a certain doctor from the DB.
+
+    Returns:
+        doctor (DoctorRead)
+    """
+
+    doctor = await doctor_service.get_doctor_by_IIN(doctor_IIN, token)
+
+    return doctor
+
+
+@router.get("/doctors/full_name/{doctor_id}", response_model=DoctorReadFullName)
+async def get_doctor_full_name_by_id(doctor_id: int, token: str = Depends(oauth2_scheme),
+                                     doctor_service: DoctorService = Depends(get_doctor_service)):
+    """
+    This method is used to retrieve a certain doctor's full name from the DB.
+
+    Returns:
+        Doctor's full name (DoctorReadFullName)
+    """
+
+    doctor = await doctor_service.get_doctor_full_name_by_id(doctor_id, token)
 
     return doctor
 
 
 @router.get("/doctors/{doctor_id}/patients", response_model=List[PatientRead])
-async def get_doctor_patients(doctor_id: int, doctor_service: DoctorService = Depends(get_doctor_service)):
+async def get_doctor_patients(doctor_id: int, token: str = Depends(oauth2_scheme),
+                              doctor_service: DoctorService = Depends(get_doctor_service)):
     """
     This method retrieve list of doctor's patients, assigned to the doctor with this ID.
 
@@ -52,13 +87,14 @@ async def get_doctor_patients(doctor_id: int, doctor_service: DoctorService = De
         List[PatientRead]: List of patients, assigned to the doctor
     """
 
-    doctor_patients = await doctor_service.get_doctor_patients(doctor_id)
+    doctor_patients = await doctor_service.get_doctor_patients(doctor_id, token)
     return doctor_patients
 
 
 # TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.
 @router.post("/doctors/register", response_model=DoctorRead)
-async def create_doctor(new_doctor_data: DoctorCreateRawPassword, doctor_service: DoctorService = Depends(get_doctor_service)):
+async def create_doctor(new_doctor_data: DoctorCreateRawPassword, token: str = Depends(oauth2_scheme),
+                        doctor_service: DoctorService = Depends(get_doctor_service)):
     """
     This method is used to create a doctor with the given data ('DoctorCreateRawPassword' model).
 
@@ -66,13 +102,14 @@ async def create_doctor(new_doctor_data: DoctorCreateRawPassword, doctor_service
         created doctor (dict[str, Any])
     """
 
-    new_doctor = await doctor_service.create_doctor(new_doctor_data)
+    new_doctor = await doctor_service.create_doctor(new_doctor_data, token)
 
     return new_doctor
 
 
 @router.put("/doctors/{doctor_id}", response_model=DoctorRead)
-async def update_doctor(new_data_for_doctor: DoctorUpdateRawPassword, doctor_id: int, doctor_service: DoctorService = Depends(get_doctor_service)):
+async def update_doctor(new_data_for_doctor: DoctorUpdateRawPassword, doctor_id: int, token: str = Depends(oauth2_scheme),
+                        doctor_service: DoctorService = Depends(get_doctor_service)):
     """
     This method is used to update the existing doctor data with the new one ('DoctorUpdateRawPassword' model).
 
@@ -80,13 +117,14 @@ async def update_doctor(new_data_for_doctor: DoctorUpdateRawPassword, doctor_id:
         updated doctor (dict[str, Any])
     """
 
-    doctor_to_update = await doctor_service.update_doctor(new_data_for_doctor, doctor_id)
+    doctor_to_update = await doctor_service.update_doctor(new_data_for_doctor, doctor_id, token)
 
     return doctor_to_update
 
 
 @router.delete("/doctors/{doctor_id}", response_model=None)
-async def delete_doctor(doctor_id: int, doctor_service: DoctorService = Depends(get_doctor_service)) -> dict:
+async def delete_doctor(doctor_id: int, token: str = Depends(oauth2_scheme),
+                        doctor_service: DoctorService = Depends(get_doctor_service)) -> dict:
     """
     This method is used to delete the existing doctor with given id.
 
@@ -94,7 +132,7 @@ async def delete_doctor(doctor_id: int, doctor_service: DoctorService = Depends(
         deleted doctor ID (int)
     """
 
-    doctor_to_delete = await doctor_service.delete_doctor(doctor_id)
+    doctor_to_delete = await doctor_service.delete_doctor(doctor_id, token)
 
     return doctor_to_delete
 

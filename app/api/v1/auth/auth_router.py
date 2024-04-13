@@ -92,6 +92,7 @@ async def refresh_token(refresh_token_data: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         user_auth_id = payload.get("sub")
+        user_role = payload.get("user_role")
 
         if user_auth_id is None:
             raise credentials_exception
@@ -108,12 +109,12 @@ async def refresh_token(refresh_token_data: str = Depends(oauth2_scheme)):
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_token(
-        data={"sub": user_auth_id}, token_type="access", expires_delta=access_token_expires
+        data={"sub": user_auth_id, "user_role": user_role}, token_type="access", expires_delta=access_token_expires
     )
 
     refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     refresh_token = create_token(
-        data={"sub": user_auth_id}, token_type="refresh", expires_delta=refresh_token_expires
+        data={"sub": user_auth_id, "user_role": user_role}, token_type="refresh", expires_delta=refresh_token_expires
     )
 
     return {"access_token": access_token, "token_type": "bearer", "refresh_token": refresh_token}

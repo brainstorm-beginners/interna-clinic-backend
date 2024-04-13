@@ -14,7 +14,8 @@ router = APIRouter(
 
 
 @router.get("/admins", response_model=List[AdminRead])
-async def get_admins(admin_service: AdminService = Depends(get_admin_service), page: int = 1, page_size: int = 10):
+async def get_admins(token: str, admin_service: AdminService = Depends(get_admin_service),
+                     page: int = 1, page_size: int = 10):
     """
     This method is used to retrieve all admins from the DB with given page and page size.
 
@@ -22,7 +23,7 @@ async def get_admins(admin_service: AdminService = Depends(get_admin_service), p
         admins (List[AdminRead][start:end])
     """
 
-    admins = await admin_service.get_admins()
+    admins = await admin_service.get_admins(token)
 
     start = (page - 1) * page_size
     end = start + page_size
@@ -47,20 +48,22 @@ async def get_admin_by_id(admin_id: int, token: str = Depends(oauth2_scheme),
 
 # TODO: Move this endpoint to the new 'auth' module as a part of login-registering logic.
 @router.post("/admins/register", response_model=AdminRead)
-async def register_admin(new_admin_data: AdminCreateRawPassword, admin_service: AdminService = Depends(get_admin_service)):
+async def register_admin(new_admin_data: AdminCreateRawPassword, token: str = Depends(oauth2_scheme),
+                         admin_service: AdminService = Depends(get_admin_service)):
     """
     This method is used to create an admin with the given data ('AdminCreate' model).
 
     Returns:
         created admin(dict[str, Any])
     """
-    new_admin = await admin_service.register_admin(new_admin_data)
+    new_admin = await admin_service.register_admin(new_admin_data, token)
 
     return new_admin
 
 
 @router.put("/admins/{admin_id}", response_model=AdminRead)
-async def update_admin(admin_id: int, new_data_for_admin: AdminUpdateRawPassword, admin_service: AdminService = Depends(get_admin_service)):
+async def update_admin(admin_id: int, new_data_for_admin: AdminUpdateRawPassword, token: str = Depends(oauth2_scheme),
+                       admin_service: AdminService = Depends(get_admin_service)):
     """
     This method is used to update the existing admin data with the new one ('AdminUpdate' model).
 
@@ -68,12 +71,13 @@ async def update_admin(admin_id: int, new_data_for_admin: AdminUpdateRawPassword
         updated admin (dict[str, Any])
     """
 
-    admin = await admin_service.update_admin(new_data_for_admin, admin_id)
+    admin = await admin_service.update_admin(new_data_for_admin, admin_id, token)
     return admin
 
 
-@router.delete("/admins/{admin_id}", response_model=None)
-async def delete_admin(admin_id: int, admin_service: AdminService = Depends(get_admin_service)) -> dict:
+@router.delete("/admins/delete/{admin_id}", response_model=None)
+async def delete_admin(admin_id: int, token: str = Depends(oauth2_scheme),
+                       admin_service: AdminService = Depends(get_admin_service)) -> dict:
     """
     This method is used to delete the existing admin with given id.
 
@@ -81,6 +85,6 @@ async def delete_admin(admin_id: int, admin_service: AdminService = Depends(get_
         deleted admin ID (int)
     """
 
-    admin_to_delete = await admin_service.delete_admin(admin_id)
+    admin_to_delete = await admin_service.delete_admin(admin_id, token)
 
     return admin_to_delete

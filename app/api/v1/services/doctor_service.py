@@ -1,12 +1,14 @@
 from typing import Any, Sequence
 
 from fastapi import HTTPException
+from jose import JWTError
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 
+from app.api.v1.auth.auth import verify_token
 from app.api.v1.repositories.doctor_repository import DoctorRepository
 from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorCreateHashedPassword, \
-    DoctorUpdateRawPassword, DoctorUpdateHashedPassword, PatientRead
+    DoctorUpdateRawPassword, DoctorUpdateHashedPassword, PatientRead, DoctorReadFullName
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -19,7 +21,7 @@ class DoctorService:
     def __init__(self, doctor_repository: DoctorRepository) -> None:
         self.doctor_repository = doctor_repository
 
-    async def get_doctors(self) -> Sequence[DoctorRead]:
+    async def get_doctors(self, token: str) -> Sequence[DoctorRead]:
         """
         This method is used to retrieve all doctors from the DB.
 
@@ -27,9 +29,16 @@ class DoctorService:
             doctors (Sequence[DoctorRead])
         """
 
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
         return await self.doctor_repository.get_doctors()
 
-    async def get_doctor_by_id(self, doctor_id: int) -> DoctorRead:
+    async def get_doctor_by_id(self, doctor_id: int, token: str) -> DoctorRead:
         """
         This method is used to retrieve a certain doctor from the DB by his 'id' field.
 
@@ -40,13 +49,73 @@ class DoctorService:
             HTTPException (404): if the doctor with given ID does not exist.
         """
 
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
         doctor = await self.doctor_repository.get_doctor_by_id(doctor_id)
         if not doctor:
             raise HTTPException(status_code=404, detail=f"Doctor with id {doctor_id} doest not exist.")
 
         return doctor
 
-    async def get_doctor_patients(self, doctor_id: int) -> Sequence[PatientRead]:
+    async def get_doctor_by_IIN(self, doctor_IIN: str, token: str) -> DoctorRead | None:
+        """
+        This method is used to retrieve a certain doctor from the DB by his 'IIN' field.
+
+        Returns:
+            doctor (PatientRead | None)
+        """
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        doctor = await self.doctor_repository.get_doctor_by_IIN(doctor_IIN)
+
+        if not doctor:
+            raise HTTPException(status_code=404, detail=f"Doctor with IIN {doctor_IIN} does not exist.")
+
+        return doctor
+
+    async def get_doctor_full_name_by_id(self, doctor_id: int, token: str) -> DoctorReadFullName | None:
+        """
+        This method is used to retrieve a certain doctor's full name from the DB by his 'id' field.
+
+        Returns:
+            Doctor's full name (DoctorReadFullName | None)
+
+        Raises:
+            HTTPException (404): if the doctor with given ID does not exist.
+            HTTPException (401): if the token is invalid.
+        """
+
+        try:
+            verify_token(token)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        doctor = await self.doctor_repository.get_doctor_by_id(doctor_id)
+        if not doctor:
+            raise HTTPException(status_code=404, detail=f"Doctor with id {doctor_id} doest not exist.")
+
+        doctor_initials = DoctorReadFullName(
+            first_name=doctor.first_name,
+            last_name=doctor.last_name,
+            middle_name=doctor.middle_name,
+            qualification=doctor.qualification,
+        )
+
+        return doctor_initials
+
+
+    async def get_doctor_patients(self, doctor_id: int, token: str) -> Sequence[PatientRead]:
         """
         Retrieve list of doctor's patients, assigned to the doctor with this ID.
 
@@ -56,14 +125,22 @@ class DoctorService:
         Returns:
             Sequence[PatientRead]: List of patients, assigned to the doctor
         """
-        existing_doctor = await self.get_doctor_by_id(doctor_id)
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        existing_doctor = await self.get_doctor_by_id(doctor_id, token)
         if not existing_doctor:
             raise HTTPException(status_code=404, detail=f"Doctor with id {doctor_id} does not exist.")
 
         doctor_patients = await self.doctor_repository.get_doctor_patients(doctor_id)
         return doctor_patients
 
-    async def create_doctor(self, raw_doctor_data: DoctorCreateRawPassword) -> dict[str, Any]:
+    async def create_doctor(self, raw_doctor_data: DoctorCreateRawPassword, token: str) -> dict[str, Any]:
         """
         This method is used to create a doctor with the given data ('DoctorCreateRawPassword' model).
         Moreover, this method:
@@ -78,6 +155,13 @@ class DoctorService:
         Raises:
             HTTPException (409): if doctor with given IIN already exists in the DB.
         """
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient", "Doctor"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         # Checking if doctor with provided IIN already exists in the DB.
         already_existing_doctor_with_provided_IIN = await self.doctor_repository.get_doctor_by_IIN(raw_doctor_data.IIN)
@@ -94,13 +178,20 @@ class DoctorService:
 
         return await self.doctor_repository.create_doctor(doctor_with_hashed_password)
 
-    async def update_doctor(self, new_data_for_doctor: DoctorUpdateRawPassword, doctor_id: int) -> DoctorRead:
+    async def update_doctor(self, new_data_for_doctor: DoctorUpdateRawPassword, doctor_id: int, token: str) -> DoctorRead:
         """
         This method is used to update the existing doctor data with the new one ('DoctorUpdateRawPassword' model).
 
         Returns:
             updated doctor (DoctorRead)
         """
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         doctor_to_update = await self.doctor_repository.get_doctor_by_id(doctor_id)
         if doctor_to_update is None:
@@ -116,7 +207,7 @@ class DoctorService:
 
         return await self.doctor_repository.update_doctor(doctor_with_hashed_password, doctor_id)
 
-    async def delete_doctor(self, doctor_id: int) -> dict:
+    async def delete_doctor(self, doctor_id: int, token: str) -> dict:
         """
         This method is used to delete the existing doctor with given id.
 
@@ -128,6 +219,13 @@ class DoctorService:
             HTTPException (409): if doctor with given ID cannot be deleted because of relationship with
             existing patients.
         """
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         doctor_to_delete = await self.doctor_repository.get_doctor_by_id(doctor_id)
         if doctor_to_delete is None:

@@ -65,7 +65,7 @@ class PatientService:
 
         return patient
 
-    async def create_patient(self, raw_patient_data: PatientCreateRawPassword) -> dict[str, Any]:
+    async def create_patient(self, token: str, raw_patient_data: PatientCreateRawPassword) -> dict[str, Any]:
         """
         This method is used to create a patient with the given data ('PatientCreateRawPassword' model).
         Moreover, this method:
@@ -81,13 +81,20 @@ class PatientService:
             HTTPException (409): if patient with given IIN already exists in the DB.
         """
 
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
         # Checking if patient with provided IIN already exists in the DB.
         already_existing_patient_with_provided_IIN = await self.patient_repository.get_patient_by_IIN(raw_patient_data.IIN)
         if already_existing_patient_with_provided_IIN:
             raise HTTPException(status_code=409, detail=f"Patient with IIN {raw_patient_data.IIN} already exists.")
 
         # Checking the presence of a patient's doctor in the DB
-        await self.doctor_service.get_doctor_by_id(raw_patient_data.doctor_id)
+        await self.doctor_service.get_doctor_by_id(raw_patient_data.doctor_id, token)
 
         hashed_password = hash_password(raw_patient_data.password)
 
@@ -99,13 +106,21 @@ class PatientService:
 
         return await self.patient_repository.create_patient(patient_with_hashed_password)
 
-    async def update_patient(self, patient_id: int, new_data_for_patient: PatientUpdateRawPassword) -> PatientRead:
+    async def update_patient(self, patient_id: int, token: str,
+                             new_data_for_patient: PatientUpdateRawPassword) -> PatientRead:
         """
         This method is used to update the existing patient data with the new one ('PatientUpdate' model).
 
         Returns:
             updated patient (PatientRead)
         """
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         patient_to_update = await self.patient_repository.get_patient_by_id(patient_id)
         if patient_to_update is None:
@@ -121,7 +136,7 @@ class PatientService:
 
         return await self.patient_repository.update_patient(patient_id, patient_with_hashed_password)
 
-    async def delete_patient(self, patient_id: int) -> dict:
+    async def delete_patient(self, patient_id: int, token: str) -> dict:
         """
         This method is used to delete the existing patient with given id.
 
@@ -131,6 +146,13 @@ class PatientService:
         Raises:
             HTTPException (404): If the patient with given ID does not exist.
         """
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         patient_to_delete = await self.patient_repository.get_patient_by_id(patient_id)
         if patient_to_delete is None:
