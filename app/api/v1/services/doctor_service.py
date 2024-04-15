@@ -114,16 +114,16 @@ class DoctorService:
 
         return doctor_initials
 
-
-    async def get_doctor_patients(self, doctor_id: int, token: str) -> Sequence[PatientRead]:
+    async def get_doctor_patients(self, doctor_IIN: str, token: str) -> Sequence[PatientRead]:
         """
-        Retrieve list of doctor's patients, assigned to the doctor with this ID.
+        Retrieve list of doctor's patients, assigned to the doctor with this IIN.
 
-        Argument:
-            doctor_id (int): Doctor ID
+        Arguments:
+            doctor_IIN (str): Doctor's Individual Identification Number
+            token (str): User's authentication token
 
         Returns:
-            Sequence[PatientRead]: List of patients, assigned to the doctor
+            Sequence[PatientRead]: List of patients (details may be limited due to privacy)
         """
 
         try:
@@ -133,11 +133,11 @@ class DoctorService:
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        existing_doctor = await self.get_doctor_by_id(doctor_id, token)
+        existing_doctor = await self.get_doctor_by_IIN(doctor_IIN, token)
         if not existing_doctor:
-            raise HTTPException(status_code=404, detail=f"Doctor with id {doctor_id} does not exist.")
+            raise HTTPException(status_code=404, detail=f"Doctor with IIN {doctor_IIN} does not exist.")
 
-        doctor_patients = await self.doctor_repository.get_doctor_patients(doctor_id)
+        doctor_patients = await self.doctor_repository.get_doctor_patients(existing_doctor.id)
         return doctor_patients
 
     async def create_doctor(self, raw_doctor_data: DoctorCreateRawPassword, token: str) -> dict[str, Any]:

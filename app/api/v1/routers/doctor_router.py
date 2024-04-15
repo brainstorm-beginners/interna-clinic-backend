@@ -79,8 +79,8 @@ async def get_doctor_full_name_by_id(doctor_id: int, token: str = Depends(oauth2
     return doctor
 
 
-@router.get("/doctors/{doctor_id}/patients", response_model=List[PatientRead])
-async def get_doctor_patients(doctor_id: int, token: str = Depends(oauth2_scheme),
+@router.get("/doctors/{doctor_IIN}/patients", response_model=List[PatientRead])
+async def get_doctor_patients(doctor_IIN: str, token: str = Depends(oauth2_scheme),
                               doctor_service: DoctorService = Depends(get_doctor_service)):
     """
     This method retrieve list of doctor's patients, assigned to the doctor with this ID.
@@ -89,7 +89,7 @@ async def get_doctor_patients(doctor_id: int, token: str = Depends(oauth2_scheme
         List[PatientRead]: List of patients, assigned to the doctor
     """
 
-    doctor_patients = await doctor_service.get_doctor_patients(doctor_id, token)
+    doctor_patients = await doctor_service.get_doctor_patients(doctor_IIN, token)
     return doctor_patients
 
 
