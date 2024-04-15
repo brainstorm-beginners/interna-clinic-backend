@@ -26,7 +26,7 @@ class Patient(Base):
     education = Column(Enum('Не оконченное среднее', 'Среднее', 'Высшие', name="educationEnum"), nullable=False,
                        default=False)
     marital_status = Column(
-        Enum('Незамужем/неженат', 'Замужем/женат', 'Разведен/вдова/вдовец', name="marital_statusEnum"),
+        Enum('Не замужем/не женат', 'За мужем/женат', 'Разведен/вдова/вдовец', name="marital_statusEnum"),
         nullable=False, default=False)
     job_description = Column(Enum('Требующая большой концентрации', 'Офисная', 'Не работаю',
                                   'С активной физ нагрузкой', 'Другое', name="job_descriptionEnum"), nullable=False,
@@ -37,14 +37,15 @@ class Patient(Base):
                                            default=False)
     # Cirrhosis of the liver in outcome
     cirrhosis = Column(Enum('ХГС', 'ХГВ', 'ХГД', 'НАЖБП/МАЖБП', 'Алкогольный стеатогепатит', 'Аутоиммунный гепатит',
-                            'ПБХ', 'ПСХ', 'ПБХ + АИГ', 'ПСХ + АИГ', 'БВК', 'Гемохроматоз', 'Другое', name="cirrhosisEnum"), nullable=False,
-                       default=False)
+                            'ПБХ', 'ПСХ', 'ПБХ + АИГ', 'ПСХ + АИГ', 'БВК', 'Гемохроматоз', 'Другое', 'Нет', name="cirrhosisEnum"),
+                       nullable=False, default=False)
     duration_of_illness = Column(Integer, nullable=False, default=False)
     platelet_count = Column(Numeric(precision=3, scale=2), CheckConstraint("platelet_count > 0.00"), nullable=False,
                             default=0.00)
     hemoglobin_level = Column(Numeric(precision=3, scale=2), CheckConstraint("hemoglobin_level > 0.00"), nullable=False,
                               default=0.00)
     ALT = Column(Numeric(precision=3, scale=2), CheckConstraint("ALT > 0.00"), nullable=False, default=0.00)
+    # ALT_upper - АЛТ количество верхних границ норм
     ALT_upper = Column(Numeric(precision=3, scale=2), CheckConstraint("ALT_upper > 0.00"), nullable=False, default=0.00)
     # AAT - АСТ(Аспартатаминотрансфераза)
     AAT = Column(Numeric(precision=3, scale=2), CheckConstraint("AAT > 0.00"), nullable=False, default=0.00)
@@ -64,26 +65,27 @@ class Patient(Base):
     # Result express test(Blood ammonia) - Результат экспресс теста(Аммиак крови)
     blood_ammonia = Column(Numeric(precision=3, scale=2), CheckConstraint("blood_ammonia > 0.00"), nullable=False,
                            default=0.00)
-    # indirect_elastography - Результат непрямой эластографии печени, стадия фиброза
+    # indirect_elastography_of_liver - Результат непрямой эластографии печени, стадия фиброза
     indirect_elastography_of_liver = Column(Numeric(precision=3, scale=2), CheckConstraint("indirect_elastography_of_liver > 0.00"),
                                             nullable=False, default=0.00)
+    # indirect_elastography_of_spleen - Результат непрямой эластографии селезенки
     indirect_elastography_of_spleen = Column(Numeric(precision=3, scale=2), CheckConstraint("indirect_elastography_of_spleen > 0.00"),
                                             nullable=False, default=0.00)
     # EVV - Варикозное расширение вен пищевода
-    EVV = Column(Enum('1 степень', '2 степень', '3 степень', '4 степень', name="EVVEnum"), nullable=False, default=False)
+    EVV = Column(Enum('1 степень', '2 степень', '3 степень', '4 степень', 'Нет', name="EVVEnum"), nullable=False, default=False)
     # red_flagg_EVV - Красные знаки ВРВ
     red_flags_EVV = Column(Enum('Да', 'Нет', name="red_flags_EVVEnum"), nullable=False, default=False)
     presence_of_ascites = Column(Enum('Нет', 'Контролируемый', 'Рефракетерный', name="presence_of_ascitesEnum"), nullable=False,
                                  default=False)
-    reitan_test = Column(Enum('<40 сек', '41-60 сек', '61-90 сек', '91-120 сек', '>120 сек', name="reitan_testEnum"),
+    reitan_test = Column(Enum('<40 сек', '41-60 сек', '61-90 сек', '91-120 сек', '>120 сек', 'Нет данных', name="reitan_testEnum"),
                          nullable=False, default=False)
     # TODO rename the field and enum value and comment if needed
-    view_ents = Column(Enum('АВС', 'скрытая свная', 'итд', name="view_entsEnum"), nullable=False, default=False)
+    view_ents = Column(Enum('АВС', 'Скрытая свная', 'Другое', name="view_entsEnum"), nullable=False, default=False)
     comorbidities = Column(String(256), nullable=False, default=False)
     # hepatocellular_carcinoma - Наличие гепатоцеллюлярной карциномы
     hepatocellular_carcinoma = Column(Enum('Да', 'Нет', name="hepatocellular_carcinomaEnum"), nullable=False, default=False)
     # For the last year only
-    was_hospitalization = Column(Enum('Плановая', 'Экстренная', name="was_hospitalizationEnum"), nullable=False, default=False)
+    was_hospitalized = Column(Enum('Планово', 'Экстренно', 'Нет', name="was_hospitalizedEnum"), nullable=False, default=False)
     # For the last year only
     was_injured = Column(Enum('Да', 'Нет', name="was_injuredEnum"), nullable=False, default=False)
     # GIB - ЖКК(Желудочно-кишечное кровотечение) За последний год
@@ -91,18 +93,18 @@ class Patient(Base):
     # For the last year only
     previous_infectious_diseases = Column(Enum('Да', 'Нет', name="previous_infectious_diseasesEnum"), nullable=False,
                                           default=False)
-    stool_character = Column(Enum('регулярный (1 раз в 1-2 дня)', 'запор', 'диарея', name="stool_characterEnum"), nullable=False,
+    stool_character = Column(Enum('Регулярный (1 раз в 1-2 дня)', 'Запор', 'Диарея', name="stool_characterEnum"), nullable=False,
                              default=False)
     dehydration = Column(String(256), nullable=False, default=False)
-    portosystemic_bypass_surgery = Column(Enum('шунтирующие операции', 'спонтанные шунты', name="portosystemic_bypass_surgeryEnum"),
+    portosystemic_bypass_surgery = Column(Enum('Шунтирующие операции', 'Спонтанные шунты', 'Нет', 'Другое', name="portosystemic_bypass_surgeryEnum"),
                                           nullable=False, default=False)
-    thrombosis = Column(Enum('Нет', 'тромбоз воротной вены', 'тромбоз печеночных вен', name="thrombosisEnum"), nullable=False,
+    thrombosis = Column(Enum('Нет', 'Тромбоз воротной вены', 'Тромбоз печеночных вен', name="thrombosisEnum"), nullable=False,
                         default=False)
     # TODO rename the field if neede
     # Medicines - ЛП(Лекарсвтенные препараты)
-    medicines = Column(Enum('прием бензодиазепин', 'прием опиодов', 'ИПП', name="medicinesEnum"), nullable=False, default=False)
+    medicines = Column(Enum('Прием бензодиазепин', 'Прием опиодов', 'ИПП', 'Другое', name="medicinesEnum"), nullable=False, default=False)
     renal_impairment = Column(Enum('Да', 'Нет', name="renal_impairmentEnum"), nullable=False, default=False)
-    bad_habits = Column(Enum('Табакокурение', 'Злоупотребление алкоголем', name="bad_habitsEnum"), nullable=False, default=False)
+    bad_habits = Column(Enum('Табакокурение', 'Злоупотребление алкоголем', 'Нет', 'Другое', name="bad_habitsEnum"), nullable=False, default=False)
     # TODO rename the field
     CPU = Column(Enum('Имелась', 'Отсутствовала', name="CPUEnum"), nullable=False, default=False)
     # accepted_PE_medications - Список принимаемых ЛС по ПЭ
