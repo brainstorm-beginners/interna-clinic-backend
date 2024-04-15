@@ -1,8 +1,11 @@
 from typing import Sequence, Any
 
-from sqlalchemy import select
+from fastapi import HTTPException
+from jose import JWTError
+from sqlalchemy import select, Row, RowMapping
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.auth.auth import verify_token
 from app.models.models import Doctor, Patient
 from app.schemas.schemas import DoctorRead, DoctorCreateHashedPassword, DoctorUpdateHashedPassword, PatientRead
 
@@ -66,6 +69,29 @@ class DoctorRepository:
         doctor_patients = data.scalars().all()
 
         return doctor_patients
+
+    async def search_doctor_by_IIN(self, doctor_IIN: str, token: str) -> Row | RowMapping:
+        """
+        This method is used to search a certain doctor from the DB by his IIN
+
+        Returns:
+            doctor (Row | RowMapping)
+        """
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        query = select(Doctor).where(Doctor.IIN == doctor_IIN)
+        result = await self.session.execute(query, {'IIN': doctor_IIN})
+        doctor_by_IIN = result.scalars().one_or_none()
+
+        if not doctor_by_IIN:
+            raise HTTPException(status_code=404, detail="Doctor not found")
+
+        return doctor_by_IIN
 
     async def create_doctor(self, new_doctor_data: DoctorCreateHashedPassword) -> dict[str, Any]:
         """

@@ -1,10 +1,12 @@
 from typing import List
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth.auth_router import oauth2_scheme
+from app.api.v1.repositories.doctor_repository import DoctorRepository
 from app.api.v1.services.doctor_service import DoctorService
-from app.dependencies import get_doctor_service
+from app.dependencies import get_doctor_service, get_async_session
 from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorUpdateRawPassword, PatientRead, \
     DoctorReadFullName
 
@@ -89,6 +91,22 @@ async def get_doctor_patients(doctor_id: int, token: str = Depends(oauth2_scheme
 
     doctor_patients = await doctor_service.get_doctor_patients(doctor_id, token)
     return doctor_patients
+
+
+@router.get("/doctors/search/{doctor_IIN}", response_model=DoctorRead)
+async def search_doctor_by_IIN(doctor_IIN: str, token: str = Depends(oauth2_scheme),
+                               session: AsyncSession = Depends(get_async_session)):
+    """
+    This method is used to search a certain doctor from the DB by his IIN.
+
+    Returns:
+        doctor (DoctorRead)
+    """
+    doctor_repository = DoctorRepository(session)
+
+    patient = await doctor_repository.search_doctor_by_IIN(doctor_IIN, token)
+
+    return patient
 
 
 # TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.

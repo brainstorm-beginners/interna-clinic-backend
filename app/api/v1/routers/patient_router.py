@@ -1,11 +1,13 @@
 from typing import List
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth.auth_router import oauth2_scheme
 from app.api.v1.services.patient_service import PatientService
-from app.dependencies import get_patient_service
+from app.dependencies import get_patient_service, get_async_session
 from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientUpdateRawPassword
+from app.api.v1.repositories.patient_repository import PatientRepository
 
 router = APIRouter(
     tags=["Patient"],
@@ -59,7 +61,22 @@ async def get_patient_by_IIN(patient_IIN: str, token: str = Depends(oauth2_schem
     return patient
 
 
-# TODO: Check token in header
+@router.get("/patients/search/{patient_IIN}", response_model=PatientRead)
+async def search_patient_by_IIN(patient_IIN: str, token: str = Depends(oauth2_scheme),
+                                session: AsyncSession = Depends(get_async_session)):
+    """
+    This method is used to search a certain patient from the DB by his IIN.
+
+    Returns:
+        patient (PatientRead)
+    """
+    patient_repository = PatientRepository(session)
+
+    patient = await patient_repository.search_patient_by_IIN(patient_IIN, token)
+
+    return patient
+
+
 @router.post("/patients/register", response_model=PatientRead)
 async def create_patient(new_patient_data: PatientCreateRawPassword, token: str = Depends(oauth2_scheme),
                          patient_service: PatientService = Depends(get_patient_service)):
