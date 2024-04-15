@@ -44,7 +44,7 @@ class PatientRead(BaseModel):
     view_ents: str
     comorbidities: str
     hepatocellular_carcinoma: str
-    was_hospitalization: str
+    was_hospitalized: str
     was_injured: str
     GIB: str
     previous_infectious_diseases: str
@@ -104,7 +104,7 @@ class PatientCreateRawPassword(BaseModel):
     view_ents: str
     comorbidities: str
     hepatocellular_carcinoma: str = "Нет"
-    was_hospitalization: str = "Нет"
+    was_hospitalized: str = "Нет"
     was_injured: str = "Нет"
     GIB: str = "Нет"
     previous_infectious_diseases: str = "Нет"
@@ -165,7 +165,7 @@ class PatientCreateHashedPassword(BaseModel):
     view_ents: str
     comorbidities: str
     hepatocellular_carcinoma: str
-    was_hospitalization: str
+    was_hospitalized: str
     was_injured: str
     GIB: str
     previous_infectious_diseases: str
@@ -283,7 +283,7 @@ class PatientUpdateHashedPassword(BaseModel):
     view_ents: str
     comorbidities: str
     hepatocellular_carcinoma: str
-    was_hospitalization: str
+    was_hospitalized: str
     was_injured: str
     GIB: str
     previous_infectious_diseases: str
@@ -314,7 +314,7 @@ class DoctorRead(BaseModel):
     last_name: str
     middle_name: str
     IIN: str
-    gender: str
+    gender: str = "Мужской"
     age: int
     qualification: DoctorQualificationEnum
 
@@ -332,7 +332,7 @@ class DoctorCreateRawPassword(BaseModel):
     middle_name: str
     IIN: str
     password: str
-    gender: str
+    gender: str = "Мужской"
     age: int
     qualification: DoctorQualificationEnum
 
@@ -343,7 +343,7 @@ class DoctorCreateHashedPassword(BaseModel):
     middle_name: str
     IIN: str
     hashed_password: str
-    gender: str
+    gender: str = "Мужской"
     age: int
     qualification: DoctorQualificationEnum
 
@@ -354,7 +354,7 @@ class DoctorUpdateRawPassword(BaseModel):
     middle_name: str
     IIN: str
     password: str
-    gender: str
+    gender: str = "Мужской"
     age: int
 
 
@@ -364,7 +364,7 @@ class DoctorUpdateHashedPassword(BaseModel):
     middle_name: str
     IIN: str
     hashed_password: str
-    gender: str
+    gender: str = "Мужской"
     age: int
 
 
