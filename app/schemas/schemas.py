@@ -4,8 +4,8 @@ from pydantic import BaseModel
 
 
 class GenderEnum(str, Enum):
-    Male = "Male"
-    Female = "Female"
+    Male = "Мужской"
+    Female = "Женский"
 
 
 class PatientRead(BaseModel):
@@ -13,8 +13,55 @@ class PatientRead(BaseModel):
     last_name: str
     middle_name: str
     IIN: str
-    gender: GenderEnum
+    gender: str
     age: int
+    ethnicity: str
+    region: str
+    height: int
+    weight: int
+    BMI: float
+    education: str
+    marital_status: str
+    job_description: str
+    driving_status: str
+    was_involved_in_car_accidents: str
+    cirrhosis: str
+    duration_of_illness: int
+    platelet_count: float
+    hemoglobin_level: float
+    ALT: float
+    ALT_upper: float
+    AAT: float
+    AAT_upper: float
+    bilirubin: float
+    creatinine: float
+    INA: float
+    albumin: float
+    sodium_blood_level: float
+    potassium_ion: float
+    blood_ammonia: float
+    indirect_elastography_of_liver: float
+    indirect_elastography_of_spleen: float
+    EVV: str
+    red_flags_EVV: str
+    presence_of_ascites: str
+    reitan_test: str
+    view_ents: str
+    comorbidities: str
+    hepatocellular_carcinoma: str
+    was_hospitalization: str
+    was_injured: str
+    GIB: str
+    previous_infectious_diseases: str
+    stool_character: str
+    dehydration: str
+    portosystemic_bypass_surgery: str
+    thrombosis: str
+    medicines: str
+    renal_impairment: str
+    bad_habits: str
+    CPU: str
+    accepted_PE_medications: str
 
     doctor_id: int
 
@@ -28,6 +75,53 @@ class PatientCreateRawPassword(BaseModel):
     password: str  # <-- Raw password
     gender: GenderEnum
     age: int
+    ethnicity: str
+    region: str
+    height: int
+    weight: int
+    BMI: float
+    education: str
+    marital_status: str
+    job_description: str
+    driving_status: str
+    was_involved_in_car_accidents: str
+    cirrhosis: str
+    duration_of_illness: int
+    platelet_count: float
+    hemoglobin_level: float
+    ALT: float
+    ALT_upper: float
+    AAT: float
+    AAT_upper: float
+    bilirubin: float
+    creatinine: float
+    INA: float
+    albumin: float
+    sodium_blood_level: float
+    potassium_ion: float
+    blood_ammonia: float
+    indirect_elastography_of_liver: float
+    indirect_elastography_of_spleen: float
+    EVV: str
+    red_flags_EVV: str
+    presence_of_ascites: str
+    reitan_test: str
+    view_ents: str
+    comorbidities: str
+    hepatocellular_carcinoma: str
+    was_hospitalization: str
+    was_injured: str
+    GIB: str
+    previous_infectious_diseases: str
+    stool_character: str
+    dehydration: str
+    portosystemic_bypass_surgery: str
+    thrombosis: str
+    medicines: str
+    renal_impairment: str
+    bad_habits: str
+    CPU: str
+    accepted_PE_medications: str
 
     doctor_id: int
 
@@ -42,6 +136,53 @@ class PatientCreateHashedPassword(BaseModel):
     hashed_password: str  # <-- Hashed password
     gender: GenderEnum
     age: int
+    ethnicity: str
+    region: str
+    height: int
+    weight: int
+    BMI: float
+    education: str
+    marital_status: str
+    job_description: str
+    driving_status: str
+    was_involved_in_car_accidents: str
+    cirrhosis: str
+    duration_of_illness: int
+    platelet_count: float
+    hemoglobin_level: float
+    ALT: float
+    ALT_upper: float
+    AAT: float
+    AAT_upper: float
+    bilirubin: float
+    creatinine: float
+    INA: float
+    albumin: float
+    sodium_blood_level: float
+    potassium_ion: float
+    blood_ammonia: float
+    indirect_elastography_of_liver: float
+    indirect_elastography_of_spleen: float
+    EVV: str
+    red_flags_EVV: str
+    presence_of_ascites: str
+    reitan_test: str
+    view_ents: str
+    comorbidities: str
+    hepatocellular_carcinoma: str
+    was_hospitalization: str
+    was_injured: str
+    GIB: str
+    previous_infectious_diseases: str
+    stool_character: str
+    dehydration: str
+    portosystemic_bypass_surgery: str
+    thrombosis: str
+    medicines: str
+    renal_impairment: str
+    bad_habits: str
+    CPU: str
+    accepted_PE_medications: str
 
     doctor_id: int
 
@@ -54,6 +195,53 @@ class PatientUpdateRawPassword(BaseModel):
     password: str
     gender: GenderEnum
     age: int
+    ethnicity: str
+    region: str
+    height: int
+    weight: int
+    BMI: float
+    education: str
+    marital_status: str
+    job_description: str
+    driving_status: str
+    was_involved_in_car_accidents: str
+    cirrhosis: str
+    duration_of_illness: int
+    platelet_count: float
+    hemoglobin_level: float
+    ALT: float
+    ALT_upper: float
+    AAT: float
+    AAT_upper: float
+    bilirubin: float
+    creatinine: float
+    INA: float
+    albumin: float
+    sodium_blood_level: float
+    potassium_ion: float
+    blood_ammonia: float
+    indirect_elastography_of_liver: float
+    indirect_elastography_of_spleen: float
+    EVV: str
+    red_flags_EVV: str
+    presence_of_ascites: str
+    reitan_test: str
+    view_ents: str
+    comorbidities: str
+    hepatocellular_carcinoma: str
+    was_hospitalization: str
+    was_injured: str
+    GIB: str
+    previous_infectious_diseases: str
+    stool_character: str
+    dehydration: str
+    portosystemic_bypass_surgery: str
+    thrombosis: str
+    medicines: str
+    renal_impairment: str
+    bad_habits: str
+    CPU: str
+    accepted_PE_medications: str
 
     doctor_id: int
 
@@ -66,6 +254,53 @@ class PatientUpdateHashedPassword(BaseModel):
     hashed_password: str
     gender: GenderEnum
     age: int
+    ethnicity: str
+    region: str
+    height: int
+    weight: int
+    BMI: float
+    education: str
+    marital_status: str
+    job_description: str
+    driving_status: str
+    was_involved_in_car_accidents: str
+    cirrhosis: str
+    duration_of_illness: int
+    platelet_count: float
+    hemoglobin_level: float
+    ALT: float
+    ALT_upper: float
+    AAT: float
+    AAT_upper: float
+    bilirubin: float
+    creatinine: float
+    INA: float
+    albumin: float
+    sodium_blood_level: float
+    potassium_ion: float
+    blood_ammonia: float
+    indirect_elastography_of_liver: float
+    indirect_elastography_of_spleen: float
+    EVV: str
+    red_flags_EVV: str
+    presence_of_ascites: str
+    reitan_test: str
+    view_ents: str
+    comorbidities: str
+    hepatocellular_carcinoma: str
+    was_hospitalization: str
+    was_injured: str
+    GIB: str
+    previous_infectious_diseases: str
+    stool_character: str
+    dehydration: str
+    portosystemic_bypass_surgery: str
+    thrombosis: str
+    medicines: str
+    renal_impairment: str
+    bad_habits: str
+    CPU: str
+    accepted_PE_medications: str
 
     doctor_id: int
 
