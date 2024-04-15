@@ -126,7 +126,10 @@ class PatientService:
         if patient_to_update is None:
             raise HTTPException(status_code=404, detail=f"Patient with id {patient_id} does not exist.")
 
-        hashed_password = hash_password(new_data_for_patient.password)
+        if new_data_for_patient.password:
+            hashed_password = hash_password(new_data_for_patient.password)
+        else:
+            hashed_password = patient_to_update.hashed_password
 
         patient_data = new_data_for_patient.model_dump()
         patient_data["hashed_password"] = hashed_password

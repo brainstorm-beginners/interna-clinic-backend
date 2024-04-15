@@ -225,7 +225,7 @@ class PatientUpdateRawPassword(BaseModel):
     view_ents: str
     comorbidities: str
     hepatocellular_carcinoma: str = "Нет"
-    was_hospitalization: str = "Нет"
+    was_hospitalized: str = "Нет"
     was_injured: str = "Нет"
     GIB: str = "Нет"
     previous_infectious_diseases: str = "Нет"
