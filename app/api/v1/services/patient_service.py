@@ -22,23 +22,32 @@ class PatientService:
         self.patient_repository = patient_repository
         self.doctor_service = doctor_service
 
-    async def get_patients(self) -> Sequence[PatientRead]:
+    async def get_patients(self, token: str) -> Sequence[PatientRead]:
         """
         This method is used to retrieve all patients from the DB.
 
         Returns:
             patients (Sequence[Patient])
         """
+        try:
+            verify_token(token)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         return await self.patient_repository.get_patients()
 
-    async def get_patient_by_id(self, patient_id: int) -> PatientRead | None:
+    async def get_patient_by_id(self, patient_id: int, token: str) -> PatientRead | None:
         """
         This method is used to retrieve a certain patient from the DB by his 'id' field.
 
         Returns:
             patient (PatientRead | None)
         """
+
+        try:
+            verify_token(token)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
         patient = await self.patient_repository.get_patient_by_id(patient_id)
         if not patient:

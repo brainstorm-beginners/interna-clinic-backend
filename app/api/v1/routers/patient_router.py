@@ -16,7 +16,7 @@ router = APIRouter(
 
 
 @router.get("/patients", response_model=List[PatientRead])
-async def get_patients(patient_service: PatientService = Depends(get_patient_service), page: int = 1, page_size: int = 10):
+async def get_patients(token: str = Depends(oauth2_scheme), patient_service: PatientService = Depends(get_patient_service), page: int = 1, page_size: int = 10):
     """
     This method is used to retrieve all patients from the DB with given page and page size.
 
@@ -24,7 +24,7 @@ async def get_patients(patient_service: PatientService = Depends(get_patient_ser
         patients (List[PatientRead][start:end])
     """
 
-    patients = await patient_service.get_patients()
+    patients = await patient_service.get_patients(token)
 
     start = (page - 1) * page_size
     end = start + page_size
@@ -33,7 +33,7 @@ async def get_patients(patient_service: PatientService = Depends(get_patient_ser
 
 
 @router.get("/patients/{patient_id}", response_model=PatientRead)
-async def get_patient_by_id(patient_id: int, patient_service: PatientService = Depends(get_patient_service)):
+async def get_patient_by_id(patient_id: int, token: str = Depends(oauth2_scheme), patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to retrieve a certain patient from the DB.
 
@@ -41,7 +41,7 @@ async def get_patient_by_id(patient_id: int, patient_service: PatientService = D
         patient (PatientRead)
     """
 
-    patient = await patient_service.get_patient_by_id(patient_id)
+    patient = await patient_service.get_patient_by_id(patient_id, token)
 
     return patient
 
