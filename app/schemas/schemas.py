@@ -311,6 +311,7 @@ class DoctorQualificationEnum(str, Enum):
 
 
 class DoctorRead(BaseModel):
+    id: int
     first_name: str
     last_name: str
     middle_name: str
