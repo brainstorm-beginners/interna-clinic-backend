@@ -27,9 +27,9 @@ class Patient(Base):
     education = Column(Enum('Не оконченное среднее', 'Среднее', 'Высшее', name="educationEnum"), nullable=False,
                        default=False)
     marital_status = Column(
-        Enum('Не замужем/не женат', 'За мужем/женат', 'Разведен/вдова/вдовец', name="marital_statusEnum"),
+        Enum('Не замужем/не женат', 'Замужем/женат', 'Разведен/вдова/вдовец', name="marital_statusEnum"),
         nullable=False, default=False)
-    job_description = Column(Enum('С точными физическими нагрузками', 'Офисная', 'Не работаю',
+    job_description = Column(Enum('С точными механизмами', 'Офисная', 'Не работаю',
                                   'С активной физ. нагрузкой', 'Другое', name="job_descriptionEnum"), nullable=False,
                              default=False)
     driving_status = Column(Enum('Да', 'Нет', name="driving_statusEnum"), nullable=False, default=False)
