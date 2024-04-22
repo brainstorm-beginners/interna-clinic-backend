@@ -63,10 +63,10 @@ class PatientRead(BaseModel):
     stool_character: str
     dehydration: str
     portosystemic_bypass_surgery: str
-    thrombosis: str
+    thrombosis: List[str]
     medicines: List[str]
     renal_impairment: str
-    bad_habits: str
+    bad_habits: List[str]
     CP: str
     accepted_PE_medications: str
     accepted_medications_at_the_time_of_inspection: str
@@ -82,7 +82,7 @@ class PatientCreateRawPassword(BaseModel):
     IIN: str
     password: str  # <-- Raw password
     gender: str = "Мужской"
-    is_on_controlled: str
+    is_on_controlled: str = "Нет данных"
     age: int
     ethnicity: str = "Азиат"
     region: str = "Алматы"
@@ -135,10 +135,10 @@ class PatientCreateRawPassword(BaseModel):
     stool_character: str = "Регулярный (1 раз в 1-2 дня)"
     dehydration: str
     portosystemic_bypass_surgery: str = "Нет"
-    thrombosis: str
+    thrombosis: List[str]
     medicines: List[str]
     renal_impairment: str = "Нет"
-    bad_habits: str
+    bad_habits: List[str]
     CP: str
     accepted_PE_medications: str
     accepted_medications_at_the_time_of_inspection: str
@@ -208,10 +208,10 @@ class PatientCreateHashedPassword(BaseModel):
     stool_character: str
     dehydration: str
     portosystemic_bypass_surgery: str
-    thrombosis: str
+    thrombosis: List[str]
     medicines: List[str]
     renal_impairment: str
-    bad_habits: str
+    bad_habits: List[str]
     CP: str
     accepted_PE_medications: str
     accepted_medications_at_the_time_of_inspection: str
@@ -279,10 +279,10 @@ class PatientUpdateRawPassword(BaseModel):
     stool_character: str = "Регулярный (1 раз в 1-2 дня)"
     dehydration: str
     portosystemic_bypass_surgery: str
-    thrombosis: str
+    thrombosis: List[str]
     medicines: List[str]
     renal_impairment: str = "Нет"
-    bad_habits: str
+    bad_habits: List[str]
     CP: str
     accepted_PE_medications: str
     accepted_medications_at_the_time_of_inspection: str
@@ -350,10 +350,10 @@ class PatientUpdateHashedPassword(BaseModel):
     stool_character: str
     dehydration: str
     portosystemic_bypass_surgery: str
-    thrombosis: str
+    thrombosis: List[str]
     medicines: List[str]
     renal_impairment: str
-    bad_habits: str
+    bad_habits: List[str]
     CP: str
     accepted_PE_medications: str
     accepted_medications_at_the_time_of_inspection: str

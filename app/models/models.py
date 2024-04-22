@@ -29,7 +29,7 @@ class Patient(Base):
     marital_status = Column(
         Enum('Не замужем/не женат', 'Замужем/Женат', 'Разведен/вдова/вдовец', name="marital_statusEnum"),
         nullable=False, default=False)
-    job_description = Column(Enum('С точными физическими нагрузками', 'Офисная', 'Не работаю',  # TODO: Исправить значения Enum
+    job_description = Column(Enum('С точными механизмами', 'Офисная', 'Не работаю',
                                   'С активной физ. нагрузкой', 'Другое', name="job_descriptionEnum"), nullable=False,
                              default=False)
     driving_status = Column(Enum('Да', 'Нет', name="driving_statusEnum"), nullable=False, default=False)
@@ -118,12 +118,11 @@ class Patient(Base):
                              default=False)
     dehydration = Column(String(256), nullable=False, default=False)
     portosystemic_bypass_surgery = Column(String(256), nullable=False, default=False)
-    thrombosis = Column(Enum('Тромбоз воротной вены', 'Тромбоз печеночных вен', 'Оба варианта', 'Нет', name="thrombosisEnum"),
-                        nullable=False, default=False)
+    thrombosis = Column(ARRAY(String), nullable=False, default=False)
     # Medicines - ЛП(Лекарсвтенные препараты)
     medicines = Column(ARRAY(String), nullable=False, default=False)
     renal_impairment = Column(Enum('Да', 'Нет', name="renal_impairmentEnum"), nullable=False, default=False)
-    bad_habits = Column(Enum('Табакокурение', 'Злоупотреблением алкоголя', 'Оба варианта', 'Нет', name="bad_habitsEnum"), nullable=False, default=False)  # TODO: Исправить значения Enum
+    bad_habits = Column(ARRAY(String), nullable=False, default=False)
     # TODO rename the field
     CP = Column(Enum('Имелась', 'Отсутствовала', name="CPUEnum"), nullable=False, default=False)
     # accepted_PE_medications - Лекарственные препараты, принимаемые ранее по ПЭ
