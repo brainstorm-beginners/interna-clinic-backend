@@ -16,7 +16,9 @@ router = APIRouter(
 
 
 @router.get("/patients", response_model=List[PatientRead])
-async def get_patients(token: str = Depends(oauth2_scheme), patient_service: PatientService = Depends(get_patient_service), page: int = 1, page_size: int = 10):
+async def get_patients(token: str = Depends(oauth2_scheme),
+                       patient_service: PatientService = Depends(get_patient_service), page: int = 1,
+                       page_size: int = 10):
     """
     This method is used to retrieve all patients from the DB with given page and page size.
 
@@ -33,7 +35,8 @@ async def get_patients(token: str = Depends(oauth2_scheme), patient_service: Pat
 
 
 @router.get("/patients/{patient_id}", response_model=PatientRead)
-async def get_patient_by_id(patient_id: int, token: str = Depends(oauth2_scheme), patient_service: PatientService = Depends(get_patient_service)):
+async def get_patient_by_id(patient_id: int, token: str = Depends(oauth2_scheme),
+                            patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to retrieve a certain patient from the DB.
 
@@ -61,18 +64,18 @@ async def get_patient_by_IIN(patient_IIN: str, token: str = Depends(oauth2_schem
     return patient
 
 
-@router.get("/patients/search/{patient_IIN}", response_model=PatientRead)
-async def search_patient_by_IIN(patient_IIN: str, token: str = Depends(oauth2_scheme),
-                                session: AsyncSession = Depends(get_async_session)):
+@router.get("/patients/search/{search_query}", response_model=List[PatientRead])
+async def search_patients(search_query: str, token: str = Depends(oauth2_scheme),
+                          session: AsyncSession = Depends(get_async_session)):
     """
-    This method is used to search a certain patient from the DB by his IIN.
+    This method is used to search a certain patient from the DB by his IIN or name, last name, middle name.
 
     Returns:
-        patient (PatientRead)
+        patients (List[PatientRead])
     """
     patient_repository = PatientRepository(session)
 
-    patient = await patient_repository.search_patient_by_IIN(patient_IIN, token)
+    patient = await patient_repository.search_patients(search_query, token)
 
     return patient
 

@@ -1,8 +1,8 @@
-from typing import Sequence, Any
+from typing import Sequence, Any, List
 
 from fastapi import HTTPException
 from jose import JWTError
-from sqlalchemy import select, Row, RowMapping
+from sqlalchemy import select, Row, RowMapping, or_, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth.auth import verify_token
@@ -53,12 +53,12 @@ class PatientRepository:
 
         return patient
 
-    async def search_patient_by_IIN(self, patient_IIN: str, token: str) -> Row | RowMapping:
+    async def search_patients(self, search_query: str, token: str) -> Sequence[Row[Any] | RowMapping | Any]:
         """
-        This method is used to search a certain patient from the DB by his IIN
+        This method is used to search patients from the DB by their IIN or name, last name, middle name
 
         Returns:
-            patient (Row | RowMapping)
+            patients (Sequence[Row[Any] | RowMapping | Any])
         """
         try:
             user_role = verify_token(token)
@@ -67,14 +67,25 @@ class PatientRepository:
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        query = select(Patient).where(Patient.IIN == patient_IIN)
-        result = await self.session.execute(query, {'IIN': patient_IIN})
-        patient_by_IIN = result.scalars().one_or_none()
+        words = search_query.split()
+        conditions = [Patient.IIN.like(f"%{word}%") for word in words]
+        conditions.extend([Patient.first_name.like(f"%{word}%") for word in words])
+        conditions.extend([Patient.last_name.like(f"%{word}%") for word in words])
+        conditions.extend([Patient.middle_name.like(f"%{word}%") for word in words])
 
-        if not patient_by_IIN:
-            raise HTTPException(status_code=404, detail="Patient not found")
+        query = select(Patient,
+                       func.similarity(func.concat_ws(' ', Patient.first_name, Patient.last_name, Patient.middle_name),
+                                       text(':search_query')).label('similarity')). \
+            where(or_(*conditions)). \
+            order_by(text('similarity DESC'))
 
-        return patient_by_IIN
+        result = await self.session.execute(query, {'search_query': ' '.join(words)})
+        patients = result.scalars().all()
+
+        if not patients:
+            raise HTTPException(status_code=404, detail="Patients not found")
+
+        return patients
 
     async def create_patient(self, new_patient_data: PatientCreateHashedPassword) -> dict[str, Any]:
         """
