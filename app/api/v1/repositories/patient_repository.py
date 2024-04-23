@@ -67,15 +67,15 @@ class PatientRepository:
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        words = search_query.split()
-        conditions = [Patient.IIN.like(f"%{word}%") for word in words]
-        conditions.extend([Patient.first_name.like(f"%{word}%") for word in words])
-        conditions.extend([Patient.last_name.like(f"%{word}%") for word in words])
-        conditions.extend([Patient.middle_name.like(f"%{word}%") for word in words])
+        words = search_query.lower().split()
+        conditions = [func.lower(Patient.IIN).like(f"%{word}%") for word in words]
+        conditions.extend([func.lower(Patient.first_name).like(f"%{word}%") for word in words])
+        conditions.extend([func.lower(Patient.last_name).like(f"%{word}%") for word in words])
+        conditions.extend([func.lower(Patient.middle_name).like(f"%{word}%") for word in words])
 
-        query = select(Patient,
-                       func.similarity(func.concat_ws(' ', Patient.first_name, Patient.last_name, Patient.middle_name),
-                                       text(':search_query')).label('similarity')). \
+        query = select(Patient, func.similarity(func.concat_ws(' ', Patient.first_name,
+                                                               Patient.last_name, Patient.middle_name),
+                                                text(':search_query')).label('similarity')). \
             where(or_(*conditions)). \
             order_by(text('similarity DESC'))
 
