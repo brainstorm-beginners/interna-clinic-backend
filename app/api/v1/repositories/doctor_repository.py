@@ -2,7 +2,7 @@ from typing import Sequence, Any
 
 from fastapi import HTTPException
 from jose import JWTError
-from sqlalchemy import select, Row, RowMapping
+from sqlalchemy import select, Row, RowMapping, func, text, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth.auth import verify_token
@@ -92,6 +92,40 @@ class DoctorRepository:
             raise HTTPException(status_code=404, detail="Doctor not found")
 
         return doctor_by_IIN
+
+    async def search_doctors(self, search_query: str, token: str) -> Sequence[Row[Any] | RowMapping | Any]:
+        """
+        This method is used to search doctors from the DB by their IIN or name, last name, middle name
+
+        Returns:
+            doctors (Sequence[Row[Any] | RowMapping | Any])
+        """
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        words = search_query.lower().split()
+        conditions = [func.lower(Doctor.IIN).like(f"%{word}%") for word in words]
+        conditions.extend([func.lower(Doctor.first_name).like(f"%{word}%") for word in words])
+        conditions.extend([func.lower(Doctor.last_name).like(f"%{word}%") for word in words])
+        conditions.extend([func.lower(Doctor.middle_name).like(f"%{word}%") for word in words])
+
+        query = select(Doctor, func.similarity(func.concat_ws(' ', Doctor.first_name,
+                                                               Doctor.last_name, Doctor.middle_name),
+                                                text(':search_query')).label('similarity')). \
+            where(or_(*conditions)). \
+            order_by(text('similarity DESC'))
+
+        result = await self.session.execute(query, {'search_query': ' '.join(words)})
+        doctors = result.scalars().all()
+
+        if not doctors:
+            raise HTTPException(status_code=404, detail="Patients not found")
+
+        return doctors
 
     async def create_doctor(self, new_doctor_data: DoctorCreateHashedPassword) -> dict[str, Any]:
         """

@@ -49,6 +49,22 @@ async def get_doctor_by_id(doctor_id: int , token: str = Depends(oauth2_scheme),
     return doctor
 
 
+@router.get("/doctors/search/{search_query}", response_model=List[DoctorRead])
+async def search_doctors(search_query: str, token: str = Depends(oauth2_scheme),
+                          session: AsyncSession = Depends(get_async_session)):
+    """
+    This method is used to search a certain doctors from the DB by his IIN or name, last name, middle name.
+
+    Returns:
+        doctors (List[DoctorRead])
+    """
+    doctor_repository = DoctorRepository(session)
+
+    doctor = await doctor_repository.search_doctors(search_query, token)
+
+    return doctor
+
+
 @router.get("/doctors/IIN/{doctor_IIN}", response_model=DoctorRead)
 async def get_doctor_by_IIN(doctor_IIN: str, token: str = Depends(oauth2_scheme),
                             doctor_service: DoctorService = Depends(get_doctor_service)):
