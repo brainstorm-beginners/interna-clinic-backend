@@ -79,7 +79,7 @@ async def search_patients(search_query: str, token: str = Depends(oauth2_scheme)
 
 
 @router.post("/patients/register", response_model=PatientRead)
-async def create_patient(new_patient_data: PatientCreateRawPassword, token: str,
+async def create_patient(new_patient_data: PatientCreateRawPassword, token: str = Depends(oauth2_scheme),
                          patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to create a patient with the given data ('PatientCreate' model).
