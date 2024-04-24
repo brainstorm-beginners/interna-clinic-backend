@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth.auth_router import oauth2_scheme
+from app.api.v1.services.pagination.pagination_service import Pagination
 from app.api.v1.services.patient_service import PatientService
 from app.dependencies import get_patient_service, get_async_session
-from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientUpdateRawPassword
+from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientUpdateRawPassword, PatientPaginationResult
 from app.api.v1.repositories.patient_repository import PatientRepository
 
 router = APIRouter(
@@ -15,10 +16,10 @@ router = APIRouter(
 )
 
 
-@router.get("/patients", response_model=List[PatientRead])
+@router.get("/patients", response_model=PatientPaginationResult)
 async def get_patients(token: str = Depends(oauth2_scheme),
-                       patient_service: PatientService = Depends(get_patient_service), page: int = 1,
-                       page_size: int = 10):
+                       patient_service: PatientService = Depends(get_patient_service),
+                       page: int = 1, page_size: int = 10):
     """
     This method is used to retrieve all patients from the DB with given page and page size.
 
@@ -27,11 +28,9 @@ async def get_patients(token: str = Depends(oauth2_scheme),
     """
 
     patients = await patient_service.get_patients(token)
+    pagination = Pagination(page, page_size)
 
-    start = (page - 1) * page_size
-    end = start + page_size
-
-    return patients[start:end]
+    return pagination.paginate(patients)
 
 
 @router.get("/patients/{patient_id}", response_model=PatientRead)

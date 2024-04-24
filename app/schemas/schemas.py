@@ -361,6 +361,14 @@ class PatientUpdateHashedPassword(BaseModel):
     doctor_id: int
 
 
+class PatientPaginationResult(BaseModel):
+    page: int
+    page_size: int
+    total: int
+    total_pages: int
+    data: List[PatientRead]
+
+
 class DoctorRead(BaseModel):
     id: int
     first_name: str
@@ -419,6 +427,14 @@ class DoctorUpdateHashedPassword(BaseModel):
     hashed_password: str
     gender: str = "Мужской"
     age: int
+
+
+class DoctorPaginationResult(BaseModel):
+    page: int
+    page_size: int
+    total: int
+    total_pages: int
+    data: List[DoctorRead]
 
 
 class AdminRead(BaseModel):

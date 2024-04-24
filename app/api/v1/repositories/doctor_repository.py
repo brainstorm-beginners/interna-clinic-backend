@@ -123,7 +123,7 @@ class DoctorRepository:
         doctors = result.scalars().all()
 
         if not doctors:
-            raise HTTPException(status_code=404, detail="Patients not found")
+            raise HTTPException(status_code=404, detail="Doctors not found")
 
         return doctors
 

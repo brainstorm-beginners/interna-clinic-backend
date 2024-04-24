@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any, Sequence, List
 
 from fastapi import HTTPException
 from jose import JWTError

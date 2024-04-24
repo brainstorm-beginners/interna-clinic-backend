@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.auth.auth_router import oauth2_scheme
 from app.api.v1.repositories.doctor_repository import DoctorRepository
 from app.api.v1.services.doctor_service import DoctorService
+from app.api.v1.services.pagination.pagination_service import Pagination
 from app.dependencies import get_doctor_service, get_async_session
 from app.schemas.schemas import DoctorRead, DoctorCreateRawPassword, DoctorUpdateRawPassword, PatientRead, \
-    DoctorReadFullName
+    DoctorReadFullName, DoctorPaginationResult, PatientPaginationResult
 
 router = APIRouter(
     tags=["Doctor"],
@@ -16,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.get("/doctors", response_model=List[DoctorRead])
+@router.get("/doctors", response_model=DoctorPaginationResult)
 async def get_doctors(token: str = Depends(oauth2_scheme), doctor_service: DoctorService = Depends(get_doctor_service),
                       page: int = 1, page_size: int = 10):
     """
@@ -27,11 +28,9 @@ async def get_doctors(token: str = Depends(oauth2_scheme), doctor_service: Docto
     """
 
     doctors = await doctor_service.get_doctors(token)
+    pagination = Pagination(page, page_size)
 
-    start = (page - 1) * page_size
-    end = start + page_size
-
-    return doctors[start:end]
+    return pagination.paginate(doctors)
 
 
 @router.get("/doctors/{doctor_id}", response_model=DoctorRead)
@@ -95,9 +94,10 @@ async def get_doctor_full_name_by_id(doctor_id: int, token: str = Depends(oauth2
     return doctor
 
 
-@router.get("/doctors/{doctor_IIN}/patients", response_model=List[PatientRead])
+@router.get("/doctors/{doctor_IIN}/patients", response_model=PatientPaginationResult)
 async def get_doctor_patients(doctor_IIN: str, token: str = Depends(oauth2_scheme),
-                              doctor_service: DoctorService = Depends(get_doctor_service)):
+                              doctor_service: DoctorService = Depends(get_doctor_service),
+                              page: int = 1, page_size: int = 10):
     """
     This method retrieve list of doctor's patients, assigned to the doctor with this ID.
 
@@ -106,7 +106,9 @@ async def get_doctor_patients(doctor_IIN: str, token: str = Depends(oauth2_schem
     """
 
     doctor_patients = await doctor_service.get_doctor_patients(doctor_IIN, token)
-    return doctor_patients
+    pagination = Pagination(page, page_size)
+
+    return pagination.paginate(doctor_patients)
 
 
 @router.get("/doctors/search/{doctor_IIN}", response_model=DoctorRead)
