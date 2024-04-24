@@ -16,7 +16,7 @@ class Pagination:
                 "page": self.page,
                 "page_size": self.page_size,
                 "total": 0,
-                "total_pages": 0,
+                "total_pages": 1,
                 "data": [],
             }
 
