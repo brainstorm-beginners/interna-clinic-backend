@@ -1,6 +1,4 @@
-from typing import List, Dict, Any
-
-from fastapi import HTTPException
+from typing import List, Any
 
 
 class Pagination:
@@ -12,12 +10,12 @@ class Pagination:
     def offset(self):
         return (self.page - 1) * self.page_size
 
-    def paginate(self, data: List[Any]) -> Dict[str, Any]:
+    def paginate(self, data: List[Any]) -> list[Any] | dict[str, int | list[Any]]:
         if not data:
-            raise HTTPException(status_code=404, detail="No items found")
+            return []
 
         total = len(data)
-        data = data[self.offset : self.offset + self.page_size]
+        data = data[self.offset: self.offset + self.page_size]
 
         return {
             "page": self.page,

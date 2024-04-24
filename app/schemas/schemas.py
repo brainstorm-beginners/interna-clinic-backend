@@ -438,6 +438,7 @@ class DoctorPaginationResult(BaseModel):
 
 
 class AdminRead(BaseModel):
+    id: int
     first_name: str
     last_name: str
     middle_name: str
