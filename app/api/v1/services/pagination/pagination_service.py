@@ -10,12 +10,15 @@ class Pagination:
     def offset(self):
         return (self.page - 1) * self.page_size
 
-    def paginate(self, data: List[Any]) -> list[Any] | dict[str, int | list[Any]]:
+    def paginate(self, total: int, data: List[Any]) -> dict[str, int | list[Any]]:
         if not data:
-            return []
-
-        total = len(data)
-        data = data[self.offset: self.offset + self.page_size]
+            return {
+                "page": self.page,
+                "page_size": self.page_size,
+                "total": 0,
+                "total_pages": 0,
+                "data": [],
+            }
 
         return {
             "page": self.page,

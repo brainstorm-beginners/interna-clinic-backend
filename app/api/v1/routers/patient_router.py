@@ -24,13 +24,12 @@ async def get_patients(token: str = Depends(oauth2_scheme),
     This method is used to retrieve all patients from the DB with given page and page size.
 
     Returns:
-        patients (List[PatientRead][start:end])
+        patients (PatientPaginationResult)
     """
-
-    patients = await patient_service.get_patients(token)
     pagination = Pagination(page, page_size)
+    total, patients = await patient_service.get_patients(token, pagination.offset, page_size)
 
-    return pagination.paginate(patients)
+    return pagination.paginate(total, patients)
 
 
 @router.get("/patients/{patient_id}", response_model=PatientRead)
@@ -80,7 +79,7 @@ async def search_patients(search_query: str, token: str = Depends(oauth2_scheme)
 
 
 @router.post("/patients/register", response_model=PatientRead)
-async def create_patient(new_patient_data: PatientCreateRawPassword, token: str = Depends(oauth2_scheme),
+async def create_patient(new_patient_data: PatientCreateRawPassword, token: str,
                          patient_service: PatientService = Depends(get_patient_service)):
     """
     This method is used to create a patient with the given data ('PatientCreate' model).

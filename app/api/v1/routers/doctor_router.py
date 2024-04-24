@@ -24,13 +24,13 @@ async def get_doctors(token: str = Depends(oauth2_scheme), doctor_service: Docto
     This method is used to retrieve all doctors from the DB with given page and page size.
 
     Returns:
-        doctors (List[PatientRead][start:end])
+        doctors (DoctorPaginationResult)
     """
 
-    doctors = await doctor_service.get_doctors(token)
     pagination = Pagination(page, page_size)
+    total, doctors = await doctor_service.get_doctors(token, pagination.offset, page_size)
 
-    return pagination.paginate(doctors)
+    return pagination.paginate(total, doctors)
 
 
 @router.get("/doctors/{doctor_id}", response_model=DoctorRead)
@@ -105,10 +105,10 @@ async def get_doctor_patients(doctor_IIN: str, token: str = Depends(oauth2_schem
         List[PatientRead]: List of patients, assigned to the doctor
     """
 
-    doctor_patients = await doctor_service.get_doctor_patients(doctor_IIN, token)
     pagination = Pagination(page, page_size)
+    total, doctor_patients = await doctor_service.get_doctor_patients(doctor_IIN, token, pagination.offset, page_size)
 
-    return pagination.paginate(doctor_patients)
+    return pagination.paginate(total, doctor_patients)
 
 
 @router.get("/doctors/search/{doctor_IIN}", response_model=DoctorRead)

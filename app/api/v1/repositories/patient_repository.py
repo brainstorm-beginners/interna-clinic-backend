@@ -1,4 +1,4 @@
-from typing import Sequence, Any, List
+from typing import Sequence, Any, Tuple
 
 from fastapi import HTTPException
 from jose import JWTError
@@ -14,18 +14,21 @@ class PatientRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_patients(self) -> Sequence[PatientRead]:
+    async def get_patients(self, offset: int = 0, limit: int = 10) -> Tuple[int, Sequence[PatientRead]]:
         """
         This method is used to retrieve all patients from the DB.
 
         Returns:
+            total (int)
             patients (Sequence[PatientRead])
         """
 
-        data = await self.session.execute(select(Patient))
+        total = await self.session.execute(func.count(Patient.id))
+        total = total.scalar()
+        data = await self.session.execute(select(Patient).offset(offset).limit(limit))
         patients = data.scalars().all()
 
-        return patients
+        return total, patients
 
     async def get_patient_by_id(self, patient_id: int) -> PatientRead | None:
         """

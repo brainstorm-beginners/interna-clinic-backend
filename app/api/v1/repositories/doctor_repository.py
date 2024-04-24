@@ -1,4 +1,4 @@
-from typing import Sequence, Any
+from typing import Sequence, Any, Tuple
 
 from fastapi import HTTPException
 from jose import JWTError
@@ -14,18 +14,21 @@ class DoctorRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_doctors(self) -> Sequence[DoctorRead]:
+    async def get_doctors(self, offset: int = 0, limit: int = 10) -> Tuple[int, Sequence[DoctorRead]]:
         """
         This method is used to retrieve all doctors from the DB.
 
         Returns:
-            doctors (Sequence[PatientRead])
+            total (int)
+            doctors (Sequence[DoctorRead])
         """
 
-        data = await self.session.execute(select(Doctor))
+        total = await self.session.execute(func.count(Doctor.id))
+        total = total.scalar()
+        data = await self.session.execute(select(Doctor).offset(offset).limit(limit))
         doctors = data.scalars().all()
 
-        return doctors
+        return total, doctors
 
     async def get_doctor_by_id(self, doctor_id: int) -> DoctorRead | None:
         """
@@ -53,7 +56,8 @@ class DoctorRepository:
 
         return doctor
 
-    async def get_doctor_patients(self, doctor_id: int) -> Sequence[PatientRead]:
+    async def get_doctor_patients(self, doctor_id: int, offset: int = 0, limit: int = 10) -> \
+            Tuple[int, Sequence[PatientRead]]:
         """
         Retrieve list of doctor's patients, assigned to the doctor with this ID.
 
@@ -61,14 +65,17 @@ class DoctorRepository:
             doctor_id (int): doctor ID
 
         Returns:
+            total (int)
             Sequence[PatientRead]: List of patients, assigned to the doctor
         """
 
-        query = select(Patient).where(Patient.doctor_id == doctor_id)
+        total = await self.session.execute(select(func.count(Patient.id)).where(Patient.doctor_id == doctor_id))
+        total = total.scalar()
+        query = select(Patient).where(Patient.doctor_id == doctor_id).offset(offset).limit(limit)
         data = await self.session.execute(query)
         doctor_patients = data.scalars().all()
 
-        return doctor_patients
+        return total, doctor_patients
 
     async def search_doctor_by_IIN(self, doctor_IIN: str, token: str) -> Row | RowMapping:
         """

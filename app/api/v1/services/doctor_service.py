@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any, Sequence, Tuple
 
 from fastapi import HTTPException
 from jose import JWTError
@@ -21,11 +21,12 @@ class DoctorService:
     def __init__(self, doctor_repository: DoctorRepository) -> None:
         self.doctor_repository = doctor_repository
 
-    async def get_doctors(self, token: str) -> Sequence[DoctorRead]:
+    async def get_doctors(self, token: str, offset: int = 0, page_size: int = 10) -> Tuple[int, Sequence[DoctorRead]]:
         """
         This method is used to retrieve all doctors from the DB.
 
         Returns:
+            total : int
             doctors (Sequence[DoctorRead])
         """
 
@@ -36,7 +37,8 @@ class DoctorService:
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        return await self.doctor_repository.get_doctors()
+        total, patients = await self.doctor_repository.get_doctors(offset=offset, limit=page_size)
+        return total, patients
 
     async def get_doctor_by_id(self, doctor_id: int, token: str) -> DoctorRead:
         """
@@ -114,7 +116,8 @@ class DoctorService:
 
         return doctor_initials
 
-    async def get_doctor_patients(self, doctor_IIN: str, token: str) -> Sequence[PatientRead]:
+    async def get_doctor_patients(self, doctor_IIN: str, token: str, offset: int = 0, limit: int = 10) -> \
+            Tuple[int, Sequence[PatientRead]]:
         """
         Retrieve list of doctor's patients, assigned to the doctor with this IIN.
 
@@ -123,6 +126,7 @@ class DoctorService:
             token (str): User's authentication token
 
         Returns:
+            total (int)
             Sequence[PatientRead]: List of patients (details may be limited due to privacy)
         """
 
@@ -137,8 +141,8 @@ class DoctorService:
         if not existing_doctor:
             raise HTTPException(status_code=404, detail=f"Doctor with IIN {doctor_IIN} does not exist.")
 
-        doctor_patients = await self.doctor_repository.get_doctor_patients(existing_doctor.id)
-        return doctor_patients
+        total, doctor_patients = await self.doctor_repository.get_doctor_patients(existing_doctor.id, offset, limit)
+        return total, doctor_patients
 
     async def create_doctor(self, raw_doctor_data: DoctorCreateRawPassword, token: str) -> dict[str, Any]:
         """

@@ -1,4 +1,4 @@
-from typing import Any, Sequence, List
+from typing import Any, Sequence, Tuple
 
 from fastapi import HTTPException
 from jose import JWTError
@@ -22,11 +22,12 @@ class PatientService:
         self.patient_repository = patient_repository
         self.doctor_service = doctor_service
 
-    async def get_patients(self, token: str) -> Sequence[PatientRead]:
+    async def get_patients(self, token: str, offset: int = 0, page_size: int = 10) -> Tuple[int, Sequence[PatientRead]]:
         """
         This method is used to retrieve all patients from the DB.
 
         Returns:
+            total (int)
             patients (Sequence[Patient])
         """
         try:
@@ -34,7 +35,8 @@ class PatientService:
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        return await self.patient_repository.get_patients()
+        total, patients = await self.patient_repository.get_patients(offset=offset, limit=page_size)
+        return total, patients
 
     async def get_patient_by_id(self, patient_id: int, token: str) -> PatientRead | None:
         """
