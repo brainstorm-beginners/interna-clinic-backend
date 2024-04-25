@@ -2,7 +2,7 @@ from typing import Sequence, Any, Tuple
 
 from fastapi import HTTPException
 from jose import JWTError
-from sqlalchemy import select, Row, RowMapping, func, text, or_
+from sqlalchemy import select, Row, RowMapping, or_, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth.auth import verify_token
@@ -77,36 +77,15 @@ class DoctorRepository:
 
         return total, doctor_patients
 
-    async def search_doctor_by_IIN(self, doctor_IIN: str, token: str) -> Row | RowMapping:
+    async def search_doctors(self, search_query: str, token: str, offset: int = 0, limit: int = 10) -> Sequence[Row[Any] | RowMapping | Any]:
         """
-        This method is used to search a certain doctor from the DB by his IIN
-
-        Returns:
-            doctor (Row | RowMapping)
-        """
-        try:
-            user_role = verify_token(token)
-            if user_role["user_role"] in ["Patient"]:
-                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
-        except JWTError:
-            raise HTTPException(status_code=401, detail="Invalid token")
-
-        query = select(Doctor).where(Doctor.IIN == doctor_IIN)
-        result = await self.session.execute(query, {'IIN': doctor_IIN})
-        doctor_by_IIN = result.scalars().one_or_none()
-
-        if not doctor_by_IIN:
-            raise HTTPException(status_code=404, detail="Doctor not found")
-
-        return doctor_by_IIN
-
-    async def search_doctors(self, search_query: str, token: str) -> Sequence[Row[Any] | RowMapping | Any]:
-        """
-        This method is used to search doctors from the DB by their IIN or name, last name, middle name
+        This method is used to search and retrieve doctors from the DB
+        by a search query (any combination of: (first_name, last_name, middle_name) or IIN).
 
         Returns:
             doctors (Sequence[Row[Any] | RowMapping | Any])
         """
+
         try:
             user_role = verify_token(token)
             if user_role["user_role"] in ["Patient"]:
@@ -124,15 +103,19 @@ class DoctorRepository:
                                                                Doctor.last_name, Doctor.middle_name),
                                                 text(':search_query')).label('similarity')). \
             where(or_(*conditions)). \
-            order_by(text('similarity DESC'))
+            order_by(text('similarity DESC')). \
+            offset(offset).limit(limit)
 
         result = await self.session.execute(query, {'search_query': ' '.join(words)})
         doctors = result.scalars().all()
 
+        total = await self.session.execute(select(func.count()).where(or_(*conditions)))
+        total = total.scalar()
+
         if not doctors:
             raise HTTPException(status_code=404, detail="Doctors not found")
 
-        return doctors
+        return total, doctors
 
     async def create_doctor(self, new_doctor_data: DoctorCreateHashedPassword) -> dict[str, Any]:
         """

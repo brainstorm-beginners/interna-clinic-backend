@@ -7,6 +7,7 @@ from passlib.context import CryptContext
 from app.api.v1.auth.auth import verify_token
 from app.api.v1.repositories.patient_repository import PatientRepository
 from app.api.v1.services.doctor_service import DoctorService
+from app.models.models import Patient
 from app.schemas.schemas import PatientRead, PatientCreateRawPassword, PatientCreateHashedPassword, \
     PatientUpdateRawPassword, PatientUpdateHashedPassword
 
@@ -22,7 +23,7 @@ class PatientService:
         self.patient_repository = patient_repository
         self.doctor_service = doctor_service
 
-    async def get_patients(self, token: str, offset: int = 0, page_size: int = 10) -> Tuple[int, Sequence[PatientRead]]:
+    async def get_patients(self, token: str, offset: int = 0, page_size: int = 10) -> tuple[Any | None, Sequence[Patient]]:
         """
         This method is used to retrieve all patients from the DB.
 
@@ -100,7 +101,8 @@ class PatientService:
             raise HTTPException(status_code=401, detail="Invalid token")
 
         # Checking if patient with provided IIN already exists in the DB.
-        already_existing_patient_with_provided_IIN = await self.patient_repository.get_patient_by_IIN(raw_patient_data.IIN)
+        already_existing_patient_with_provided_IIN = await self.patient_repository.get_patient_by_IIN(
+            raw_patient_data.IIN)
         if already_existing_patient_with_provided_IIN:
             raise HTTPException(status_code=409, detail=f"Patient with IIN {raw_patient_data.IIN} already exists.")
 

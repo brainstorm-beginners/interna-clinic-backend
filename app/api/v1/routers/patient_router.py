@@ -62,20 +62,22 @@ async def get_patient_by_IIN(patient_IIN: str, token: str = Depends(oauth2_schem
     return patient
 
 
-@router.get("/patients/search/{search_query}", response_model=List[PatientRead])
+@router.get("/patients/search/{search_query}", response_model=PatientPaginationResult)
 async def search_patients(search_query: str, token: str = Depends(oauth2_scheme),
+                          page: int = 1, page_size: int = 10,
                           session: AsyncSession = Depends(get_async_session)):
     """
-    This method is used to search a certain patient from the DB by his IIN or name, last name, middle name.
+    This method is used to search and retrieve patients from the DB
+    by a search query (any combination of: (first_name, last_name, middle_name) or IIN).
 
     Returns:
-        patients (List[PatientRead])
+        patients (PatientPaginationResult)
     """
     patient_repository = PatientRepository(session)
+    pagination = Pagination(page, page_size)
+    total, patients = await patient_repository.search_patients(search_query, token, pagination.offset, page_size)
 
-    patient = await patient_repository.search_patients(search_query, token)
-
-    return patient
+    return pagination.paginate(total, patients)
 
 
 @router.post("/patients/register", response_model=PatientRead)

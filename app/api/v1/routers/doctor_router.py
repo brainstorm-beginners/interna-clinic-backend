@@ -48,20 +48,22 @@ async def get_doctor_by_id(doctor_id: int , token: str = Depends(oauth2_scheme),
     return doctor
 
 
-@router.get("/doctors/search/{search_query}", response_model=List[DoctorRead])
+@router.get("/doctors/search/{search_query}", response_model=DoctorPaginationResult)
 async def search_doctors(search_query: str, token: str = Depends(oauth2_scheme),
+                          page: int = 1, page_size: int = 10,
                           session: AsyncSession = Depends(get_async_session)):
     """
-    This method is used to search a certain doctors from the DB by his IIN or name, last name, middle name.
+    This method is used to search and retrieve doctors from the DB
+    by a search query (any combination of: (first_name, last_name, middle_name) or IIN).
 
     Returns:
-        doctors (List[DoctorRead])
+        doctors (DoctorPaginationResult)
     """
     doctor_repository = DoctorRepository(session)
+    pagination = Pagination(page, page_size)
+    total, doctors = await doctor_repository.search_doctors(search_query, token, pagination.offset, page_size)
 
-    doctor = await doctor_repository.search_doctors(search_query, token)
-
-    return doctor
+    return pagination.paginate(total, doctors)
 
 
 @router.get("/doctors/IIN/{doctor_IIN}", response_model=DoctorRead)
@@ -111,26 +113,9 @@ async def get_doctor_patients(doctor_IIN: str, token: str = Depends(oauth2_schem
     return pagination.paginate(total, doctor_patients)
 
 
-@router.get("/doctors/search/{doctor_IIN}", response_model=DoctorRead)
-async def search_doctor_by_IIN(doctor_IIN: str, token: str = Depends(oauth2_scheme),
-                               session: AsyncSession = Depends(get_async_session)):
-    """
-    This method is used to search a certain doctor from the DB by his IIN.
-
-    Returns:
-        doctor (DoctorRead)
-    """
-    doctor_repository = DoctorRepository(session)
-
-    patient = await doctor_repository.search_doctor_by_IIN(doctor_IIN, token)
-
-    return patient
-
-
 # TODO: Move and rename this endpoint to the new 'auth' module as a part of login-registering logic.
 @router.post("/doctors/register", response_model=DoctorRead)
-async def create_doctor(new_doctor_data: DoctorCreateRawPassword, token: str = Depends(oauth2_scheme),
-                        doctor_service: DoctorService = Depends(get_doctor_service)):
+async def create_doctor(new_doctor_data: DoctorCreateRawPassword, token: str = Depends(oauth2_scheme),  doctor_service: DoctorService = Depends(get_doctor_service)):
     """
     This method is used to create a doctor with the given data ('DoctorCreateRawPassword' model).
 
@@ -158,7 +143,7 @@ async def update_doctor(new_data_for_doctor: DoctorUpdateRawPassword, doctor_id:
     return doctor_to_update
 
 
-@router.delete("/doctors/{doctor_id}", response_model=None)
+@router.delete("/doctors/delete/{doctor_id}", response_model=None)
 async def delete_doctor(doctor_id: int, token: str = Depends(oauth2_scheme),
                         doctor_service: DoctorService = Depends(get_doctor_service)) -> dict:
     """

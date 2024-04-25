@@ -1,4 +1,4 @@
-from typing import Sequence, Any, Tuple
+from typing import Sequence, Any
 
 from fastapi import HTTPException
 from jose import JWTError
@@ -14,13 +14,13 @@ class PatientRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_patients(self, offset: int = 0, limit: int = 10) -> Tuple[int, Sequence[PatientRead]]:
+    async def get_patients(self, offset: int = 0, limit: int = 10) -> tuple[Any | None, Sequence[Patient]]:
         """
         This method is used to retrieve all patients from the DB.
 
         Returns:
             total (int)
-            patients (Sequence[PatientRead])
+            patients (tuple[Any | None, Sequence[Patient]])
         """
 
         total = await self.session.execute(func.count(Patient.id))
@@ -56,13 +56,17 @@ class PatientRepository:
 
         return patient
 
-    async def search_patients(self, search_query: str, token: str) -> Sequence[Row[Any] | RowMapping | Any]:
+    async def search_patients(self, search_query: str, token: str, offset: int = 0, limit: int = 10) -> tuple[
+        int, Sequence[Row[Any] | RowMapping | Any]]:
         """
-        This method is used to search patients from the DB by their IIN or name, last name, middle name
+        This method is used to search and retrieve patients from the DB
+        by a search query (any combination of: (first_name, last_name, middle_name) or IIN).
 
         Returns:
+            total (int)
             patients (Sequence[Row[Any] | RowMapping | Any])
         """
+
         try:
             user_role = verify_token(token)
             if user_role["user_role"] in ["Patient"]:
@@ -80,15 +84,19 @@ class PatientRepository:
                                                                Patient.last_name, Patient.middle_name),
                                                 text(':search_query')).label('similarity')). \
             where(or_(*conditions)). \
-            order_by(text('similarity DESC'))
+            order_by(text('similarity DESC')). \
+            offset(offset).limit(limit)
 
         result = await self.session.execute(query, {'search_query': ' '.join(words)})
         patients = result.scalars().all()
 
+        total = await self.session.execute(select(func.count()).where(or_(*conditions)))
+        total = total.scalar()
+
         if not patients:
             raise HTTPException(status_code=404, detail="Patients not found")
 
-        return patients
+        return total, patients
 
     async def create_patient(self, new_patient_data: PatientCreateHashedPassword) -> dict[str, Any]:
         """
