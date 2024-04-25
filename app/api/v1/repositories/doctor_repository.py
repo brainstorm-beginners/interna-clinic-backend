@@ -14,6 +14,19 @@ class DoctorRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    async def get_doctors_without_pagination(self) -> Sequence[DoctorRead]:
+        """
+        This method is used to retrieve all doctors from the DB without.
+
+        Returns:
+            doctors (Sequence[DoctorRead])
+        """
+
+        data = await self.session.execute(select(Doctor))
+        doctors = data.scalars().all()
+
+        return doctors
+
     async def get_doctors(self, offset: int = 0, limit: int = 10) -> Tuple[int, Sequence[DoctorRead]]:
         """
         This method is used to retrieve all doctors from the DB.

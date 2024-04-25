@@ -17,6 +17,20 @@ router = APIRouter(
 )
 
 
+@router.get("/doctors_without_pagination", response_model=List[DoctorRead])
+async def get_doctors_without_pagination(token: str, doctor_service: DoctorService = Depends(get_doctor_service)):
+    """
+    This method is used to retrieve all doctors from the DB without pagination.
+
+    Returns:
+        doctors (List[DoctorRead])
+    """
+
+    doctors = await doctor_service.get_doctors_without_pagination(token)
+
+    return doctors
+
+
 @router.get("/doctors", response_model=DoctorPaginationResult)
 async def get_doctors(token: str = Depends(oauth2_scheme), doctor_service: DoctorService = Depends(get_doctor_service),
                       page: int = 1, page_size: int = 10):

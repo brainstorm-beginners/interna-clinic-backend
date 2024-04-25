@@ -21,6 +21,23 @@ class DoctorService:
     def __init__(self, doctor_repository: DoctorRepository) -> None:
         self.doctor_repository = doctor_repository
 
+    async def get_doctors_without_pagination(self, token: str) -> Sequence[DoctorRead]:
+        """
+        This method is used to retrieve all doctors from the DB without pagination.
+
+        Returns:
+            doctors (Sequence[DoctorRead])
+        """
+
+        try:
+            user_role = verify_token(token)
+            if user_role["user_role"] in ["Patient"]:
+                raise HTTPException(status_code=403, detail="Forbidden: Unauthorized role")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        return await self.doctor_repository.get_doctors_without_pagination()
+
     async def get_doctors(self, token: str, offset: int = 0, page_size: int = 10) -> Tuple[int, Sequence[DoctorRead]]:
         """
         This method is used to retrieve all doctors from the DB.
